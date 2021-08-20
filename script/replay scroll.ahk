@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
-; v0.9
-; Updated 8/19/21
+; v1.0
+; Updated 8/20/21
 
 ; REQUIRED images in script folder:
 ; replays_end.png
@@ -28,52 +28,40 @@ CoordMode Mouse Screen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CONFIG (you can change these!)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+INI_PATH := "config.ini"
 
-; CLOSE_DOLPHIN: Set to true if you want to close the Dolphin window automatically after scrolling finishes, otherwise set to false.
+IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
+global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
+IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
+global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
+IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, StartRecordingOBS
+IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, StopRecordingOBS
+IniRead, A_PRESS, %INI_PATH%, Hotkeys, PressA, X
+IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 
-global CLOSE_DOLPHIN := true
-
-; OPTIONAL OBS hotkeys to start and stop video recording directly from the script.
-; Use lowercase true/false to set
-; Configure in OBS: File > Settings > Hotkeys
-; Pause or ScrollLock used by default. Quote marks needed around the keys
-; Reference https://www.autohotkey.com/docs/KeyList.htm
-
-global USE_OBS_HOTKEYS = true
-OBS_START_RECORDING := "ScrollLock"
-OBS_STOP_RECORDING := "Pause"
-
-; Buttons on the keyboard that correspond to buttons in Dolphin controller settings.
-; Not recommended to change unless needed.
-; X is recommended for A press, and Right arrow for right. Quote marks are needed on these lines
-
-A_PRESS := "X"
-RIGHT_PRESS := "Right"
-
-; OUTPUT_VIDEO_PATH: Configure in OBS: File > Settings > Advanced > "Filename Formatting"
-OUTPUT_VIDEO_PATH := "C:\Users\m\Videos\OBS_output.mp4"
+IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 
 ; REPLAYS_TEXT: Configure for screen size. These coordinate-pairs form a square around a portion of the Dolphin screen that must cover the full "REPLAYS" image used in the corresponding png file.
 ; Quote marks needed around the filename
-REPLAYS_TEXT_PNG := "replays_text.png"
-REPLAYS_TEXT_UPPERLEFT_X := 200
-REPLAYS_TEXT_UPPERLEFT_Y := 50
-REPLAYS_TEXT_LOWERRIGHT_X := 650
-REPLAYS_TEXT_LOWERRIGHT_Y := 200
+IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
+IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftX, 0
+IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
+IniRead, REPLAYS_TEXT_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightX, A_ScreenWidth
+IniRead, REPLAYS_TEXT_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightY, A_ScreenHeight
 
 ; REPLAYS_END: See above. Used for the right-facing "arrow in a circle" design to detect end of the list
-REPLAYS_END_PNG := "replays_end.png"
-REPLAYS_END_UPPERLEFT_X := 1165
-REPLAYS_END_UPPERLEFT_Y := 366
-REPLAYS_END_LOWERRIGHT_X := 1869
-REPLAYS_END_LOWERRIGHT_Y := 1070
+IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
+IniRead, REPLAYS_END_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftX, 0
+IniRead, REPLAYS_END_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftY, 0
+IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightX, A_ScreenWidth
+IniRead, REPLAYS_END_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightY, A_ScreenHeight
 
 ; REPLAYS_EMPTY: See above. Used for detecting an empty P2 port in the replay menu
-REPLAYS_EMPTY_PNG := "replays_empty.png"
-REPLAYS_EMPTY_UPPERLEFT_X := 1010
-REPLAYS_EMPTY_UPPERLEFT_Y := 630
-REPLAYS_EMPTY_LOWERRIGHT_X := 1075
-REPLAYS_EMPTY_LOWERRIGHT_Y := 695
+IniRead, REPLAYS_EMPTY_PNG, %INI_PATH%, Images, ReplaysEmpty, 
+IniRead, REPLAYS_EMPTY_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyUpperLeftX, 0
+IniRead, REPLAYS_EMPTY_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyUpperLeftY, 0
+IniRead, REPLAYS_EMPTY_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyLowerRightX, A_ScreenWidth
+IniRead, REPLAYS_EMPTY_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyLowerRightY, A_ScreenHeight
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
@@ -87,11 +75,12 @@ Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
 if (USE_OBS_HOTKEYS) {
 	Gui, Add, Text,, `nOBS hotkeys set:`n  Start: %OBS_START_RECORDING%`n  Stop: %OBS_STOP_RECORDING%`n
+	Gui, Add, Checkbox, vDO_UPLOAD, Begin auto-upload to YouTube after recording
 }
 else {
-	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually.`n
+	DO_UPLOAD := false
+	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually. Auto-upload disabled.`n
 }
-Gui, Add, Checkbox, vDO_UPLOAD, Begin auto-upload to YouTube after recording
 Gui, Add, Text,, Navigate to the first replay in the replay menu,`nthen press OK to continue, or Cancel to quit.
 Gui, Add, Button, Default w120 gContinue, OK
 Gui, Add, Button, x+5 w120 gExit, Cancel
@@ -113,12 +102,6 @@ Continue:
 		END_BEHAVIOR = 0
 	}
 
-; If OBS hotkeys aren't configured, don't auto-upload since there's no finished mp4
-if (DO_UPLOAD and not USE_OBS_HOTKEYS) {
-	DO_UPLOAD := false
-	MsgBox 1, Error, OBS recording hotkeys must be configured to use auto-upload. Configure these within the AHK file.`n`nAuto-uploading disabled. Press OK to continue.
-}
-
 ; Check if output file exists, and show an error if so
 while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 	MsgBox File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file, then press OK to continue.
@@ -129,7 +112,7 @@ while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 Loop {
 	; Check for "replays" menu text once per second
 	waitSeconds(1)
-	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
+	ImageSearch, FoundX, FoundY, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
 	; If in replays menu, check for valid replay
 	if (ErrorLevel = 0) {
@@ -147,6 +130,10 @@ Loop {
 			inputKey(OBS_START_RECORDING)
 			waitSeconds(0.5)
 		}
+		
+		; Align ImageSearch box to found coordinates, as an optimization
+		REPLAYS_TEXT_UPPERLEFT_X := %FoundX%
+		REPLAYS_TEXT_UPPERLEFT_Y := %FoundY%
 		
 		inputButton(A_PRESS, 3)
 		waitSeconds(5)
@@ -178,13 +165,13 @@ Loop {
 		ImageSearch, X, Y, %REPLAYS_EMPTY_UPPERLEFT_X%, %REPLAYS_EMPTY_UPPERLEFT_Y%, %REPLAYS_EMPTY_LOWERRIGHT_X%, %REPLAYS_EMPTY_LOWERRIGHT_Y%, %REPLAYS_EMPTY_PNG%
 		
 		; If not on a 1-player replay, press A to start the replay
-		if (ErrorLevel != 0) {
+		if (ErrorLevel > 0) {
 			inputButton(A_PRESS, 3)
 			waitSeconds(6)	; No need to do anything for a while
 		}
 	}
 	
-	; If in-game, wait a bit between screen checks
+	; If replays menu text not found, wait a sec between screen checks
 	else {
 		waitSeconds(1)
 	}
@@ -202,18 +189,17 @@ if (CLOSE_DOLPHIN) {
 }
 
 if (DO_UPLOAD) {
-	UPLOAD_BUTTON_PNG := "upload_button.png"
-	UPLOAD_BUTTON_ALT_PNG := "upload_button2.png"
-	UPLOADING_TEXT_PNG := "uploading_text.png"
+	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
+	IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
+	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	
 	; Begin YouTube upload. Open new Chrome window, then wait for it to load
 	Run chrome.exe "https://youtube.com/upload" "--new-window"
 	waitSeconds(10)
 
-
 	ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
 
-	; If not found, check with non-DarkReader image
+	; If not found, check with non-DarkReader image (or other alt button)
 	if (ErrorLevel = 1) {
 		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
 		
@@ -227,7 +213,7 @@ if (DO_UPLOAD) {
 	Click, , %FoundX%, %FoundY%
 
 	; Wait for file select window
-	waitSeconds(5)
+	waitSeconds(6)
 
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
@@ -235,7 +221,7 @@ if (DO_UPLOAD) {
 
 	Loop {
 		; Every 2 minutes, check to see if video is still uploading
-		Sleep 2 * 60 * 1000
+		waitSeconds(2*60)
 		ImageSearch, 0,0, 100,100, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
 		
 		; If uploading text not found, assume upload is complete.
@@ -291,6 +277,11 @@ inputKey(inputVar, loopCount:=1) {
 		Send {%inputVar% up}
 		Sleep 200
 	}
+}
+
+toBool(var) {
+	StringLower, var, var
+	return (var = "true" or var = 1)
 }
 
 waitFrames(framesToWait) {
