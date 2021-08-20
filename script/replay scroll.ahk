@@ -25,9 +25,9 @@ SetWorkingDir %A_ScriptDir%
 CoordMode Pixel Screen
 CoordMode Mouse Screen
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; CONFIG (you can change these!)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;
+; CONFIG
+;;;;;;;;;
 INI_PATH := "config.ini"
 
 IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
@@ -41,22 +41,18 @@ IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 
-; REPLAYS_TEXT: Configure for screen size. These coordinate-pairs form a square around a portion of the Dolphin screen that must cover the full "REPLAYS" image used in the corresponding png file.
-; Quote marks needed around the filename
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
 IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftX, 0
 IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
 IniRead, REPLAYS_TEXT_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_TEXT_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightY, A_ScreenHeight
 
-; REPLAYS_END: See above. Used for the right-facing "arrow in a circle" design to detect end of the list
 IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
 IniRead, REPLAYS_END_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftX, 0
 IniRead, REPLAYS_END_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftY, 0
 IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_END_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightY, A_ScreenHeight
 
-; REPLAYS_EMPTY: See above. Used for detecting an empty P2 port in the replay menu
 IniRead, REPLAYS_EMPTY_PNG, %INI_PATH%, Images, ReplaysEmpty, 
 IniRead, REPLAYS_EMPTY_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyUpperLeftX, 0
 IniRead, REPLAYS_EMPTY_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyUpperLeftY, 0
@@ -188,24 +184,39 @@ if (CLOSE_DOLPHIN) {
 	waitSeconds(1.5)
 }
 
+upload:
 if (DO_UPLOAD) {
 	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 	IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
+	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
+	IniRead, BROWSER_OPEN_WAIT, %INI_PATH%, Behavior, BrowserOpenWaitTime
+	StringLower, BROWSER, BROWSER
 	
-	; Begin YouTube upload. Open new Chrome window, then wait for it to load
-	Run chrome.exe "https://youtube.com/upload" "--new-window"
-	waitSeconds(10)
-
+	; Begin YouTube upload. Open new browser window, then wait for it to load
+	if BROWSER = chrome {
+		Run chrome.exe "https://youtube.com/upload" "--new-window"
+	}
+	else if BROWSER = firefox {
+		Run firefox.exe "https://youtube.com/upload" "--new-window"
+	}
+	else {
+		errorText = Browser setting invalid. Replay mp4 should still be saved.`n`nQuitting script without uploading.
+		endError(END_BEHAVIOR, errorText)
+	}
+	waitSeconds(%BROWSER_OPEN_WAIT%)
+	
+	; Detect upload button
 	ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
-
-	; If not found, check with non-DarkReader image (or other alt button)
+	
+	; If not found, check alt button
 	if (ErrorLevel = 1) {
 		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
 		
 		; If STILL not found, assume there's an error. End script
 		if (ErrorLevel = 1) {
-			Goto end
+			errorText = Upload button not detected. (BrowserOpenWaitTime may need to be increased?)
+			endError(END_BEHAVIOR, errorText)
 		}
 	}
 
@@ -213,7 +224,7 @@ if (DO_UPLOAD) {
 	Click, , %FoundX%, %FoundY%
 
 	; Wait for file select window
-	waitSeconds(6)
+	waitSeconds(%BROWSER_OPEN_WAIT%)
 
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
@@ -253,6 +264,12 @@ end(shutdownVar) {
 	else if (shutdownVar = 2)	{
 		Shutdown, 1
 	}
+}
+
+endError(shutdownVar, errorMsg) {
+	end(shutdownVar)
+	MsgBox %errorMsg%
+	ExitApp
 }
 
 ; inputButton()
