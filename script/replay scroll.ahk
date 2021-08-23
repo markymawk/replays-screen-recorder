@@ -137,9 +137,15 @@ Loop {
 	}
 }
 
+; Count how many times the current replay's ending has been checked
+scrollCheckCount = 0
+
+; Time, in seconds, that a game can last before quitting out of the script
+SCROLL_CHECK_MAX = 540
+
 ; Main loop to cycle through all replays after the first
 Loop {
-		
+	scrollCheckCount = scrollCheckCount + 1
 	; Check for "replays" menu text
 	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
@@ -164,6 +170,17 @@ Loop {
 		if (ErrorLevel > 0) {
 			inputButton(A_PRESS, 3)
 			waitSeconds(6)	; No need to do anything for a while
+			scrollCheckCount = 0
+		}
+		
+		; If replay lasts too long, stop the recording and end script
+		if scrollCheckCount >= SCROLL_CHECK_MAX {
+			if (USE_OBS_HOTKEYS) {
+				inputKey(OBS_STOP_RECORDING)
+			}
+			
+			errorText = Replay exceeds time limit. Recording stopped and saved.
+			endError(END_BEHAVIOR, errorText)
 		}
 	}
 	
