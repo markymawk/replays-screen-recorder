@@ -18,6 +18,10 @@
 ; Fracture for rebuilding PM/P+ replays, as well as the autosave feature, both of which make this possible
 ; Bird for designing the Netplay replay-saving system
 
+; Todo: endError if no replay scroll for 10 minutes
+; Delete browserOpenWaitTime parameter
+; LRA Start combination for replays that are too long
+
 #NoEnv
 #SingleInstance force
 SendMode Input
@@ -41,6 +45,7 @@ IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 
+; Thought about hardcoding replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
 IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftX, 0
 IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
@@ -63,6 +68,10 @@ IniRead, REPLAYS_EMPTY_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyL
 ; THE PARTS THAT DO THINGS
 ; (shouldn't change stuff after this line)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; DEBUG
+;DO_UPLOAD := true
+;Goto upload
 
 ; Show user interface to choose end behavior
 Gui, Add, Text,, PM/P+ replay screen recorder v0.9`n`nChoose behavior after reaching the end of replays:
@@ -103,7 +112,6 @@ while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 	MsgBox File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file, then press OK to continue.
 }
 
-
 ; Preliminary loop for initial replay
 Loop {
 	; Check for "replays" menu text once per second
@@ -127,7 +135,7 @@ Loop {
 			waitSeconds(0.5)
 		}
 		
-		; Align ImageSearch box to found coordinates, as an optimization
+		; Align ImageSearch box to found coordinates, for optimization
 		REPLAYS_TEXT_UPPERLEFT_X := %FoundX%
 		REPLAYS_TEXT_UPPERLEFT_Y := %FoundY%
 		
@@ -207,46 +215,60 @@ if (DO_UPLOAD) {
 	IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
-	IniRead, BROWSER_OPEN_WAIT, %INI_PATH%, Behavior, BrowserOpenWaitTime
 	StringLower, BROWSER, BROWSER
 	
+	;not used
+	;IniRead, BROWSER_OPEN_WAIT, %INI_PATH%, Behavior, BrowserOpenWaitTime
+	
 	; Begin YouTube upload. Open new browser window, then wait for it to load
-	if BROWSER = chrome {
+	if (%BROWSER% = chrome) {
 		Run chrome.exe "https://youtube.com/upload" "--new-window"
 	}
-	else if BROWSER = firefox {
+	else if (%BROWSER% = firefox) {
 		Run firefox.exe "https://youtube.com/upload" "--new-window"
 	}
 	else {
 		errorText = Browser setting invalid. Replay mp4 should still be saved.`n`nQuitting script without uploading.
 		endError(END_BEHAVIOR, errorText)
 	}
-	waitSeconds(%BROWSER_OPEN_WAIT%)
 	
-	; Detect upload button
-	ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
-	
-	; If not found, check alt button
-	if (ErrorLevel = 1) {
-		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
+	; Check for upload button, waiting 4 seconds each time (100 secs)
+	Loop 25 {
+		; Detect upload button
+		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
 		
-		; If STILL not found, assume there's an error. End script
-		if (ErrorLevel = 1) {
-			errorText = Upload button not detected. (BrowserOpenWaitTime may need to be increased?)
-			endError(END_BEHAVIOR, errorText)
+		; If found, click button
+		if (ErrorLevel = 0) {
+			Goto uploadClick
 		}
+		; If not found, check alt button
+		else {
+			ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
+			
+			if (ErrorLevel = 0) {
+				Goto uploadClick
+			}
+		}
+		waitSeconds(4)
 	}
-
+	
+	; uploadButtonNotFound label only used if uploadClick is not accessed via the above loop.
+	uploadButtonNotFound:
+	errorText = Upload button not detected. Replay mp4 should still be saved.`n`nQuitting script without uploading
+	endError(END_BEHAVIOR, errorText)
+	
 	; Click upload button
+	uploadClick:
 	Click, , %FoundX%, %FoundY%
 
 	; Wait for file select window
-	waitSeconds(%BROWSER_OPEN_WAIT%)
-
+	waitSeconds(10)
+	
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
 	Send {Enter}
-
+	
+	afterUploadWaitLoop:
 	Loop {
 		; Every 2 minutes, check to see if video is still uploading
 		waitSeconds(2*60)
