@@ -22,6 +22,7 @@
 ; LRA Start combination for replays that are too long
 ; Save prompt settings to ini file, and set to default for future runs
 ; Disable 3+ player replays, using new png+ini+GUI setting
+; UploadMinutesMax ini parameter, for time to wait for upload
 
 #NoEnv
 #SingleInstance force
@@ -36,9 +37,10 @@ CoordMode Mouse Screen
 INI_PATH := "config.ini"
 
 IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
-global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
+global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
+
 IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, StartRecordingOBS
 IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, StopRecordingOBS
 IniRead, A_PRESS, %INI_PATH%, Hotkeys, PressA, X
@@ -267,13 +269,13 @@ if (DO_UPLOAD) {
 	
 	afterUploadWaitLoop:
 	Loop {
-		; Every 2 minutes, check to see if video is still uploading
-		waitSeconds(2*60)
-		ImageSearch, 0,0, 100,100, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
+		; Every 60 seconds, check to see if video is still uploading
+		waitSeconds(60)
+		ImageSearch, 0,0, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
 		
 		; If uploading text not found, assume upload is complete.
-		; OR after 2 hours (60 loops), exit script regardless of upload status
-		if (ErrorLevel = 1 or A_Index > 60) {
+		; OR after 2 hours (120 loops), exit script regardless of upload status
+		if (ErrorLevel = 1 or A_Index > 120) {
 			Goto end
 		}
 	}
