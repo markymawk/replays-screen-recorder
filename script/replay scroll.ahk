@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
 ; v1.0
-; Updated 8/20/21
+; Updated 8/23/21
 
 ; REQUIRED images in script folder:
 ; replays_end.png
@@ -14,13 +14,14 @@
 ; uploading_text.png
 
 ; Recommended: disable any real Gamecube/USB controllers in Dolphin
-; Special thanks:
-; Fracture for rebuilding PM/P+ replays, as well as the autosave feature, both of which make this possible
-; Bird for designing the Netplay replay-saving system
+; Special thanks to:
+; Fracture for rebuilding PM/P+ replays, as well as the Autosave Replays feature, both of which make this possible
+; Bird for designing the Netplay replay save system, which inspired me to explore this tech to its fullest through 2021
 
-; Todo: endError if no replay scroll for 10 minutes
-; Delete browserOpenWaitTime parameter
+; Todo:
 ; LRA Start combination for replays that are too long
+; Save prompt settings to ini file, and set to default for future runs
+; Disable 3+ player replays, using new png+ini+GUI setting
 
 #NoEnv
 #SingleInstance force
@@ -45,7 +46,7 @@ IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 
-; Thought about hardcoding replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos
+; Want to auto-calculate replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
 IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftX, 0
 IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
@@ -64,10 +65,9 @@ IniRead, REPLAYS_EMPTY_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyUp
 IniRead, REPLAYS_EMPTY_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_EMPTY_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyLowerRightY, A_ScreenHeight
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
-; (shouldn't change stuff after this line)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; DEBUG
 ;DO_UPLOAD := true
@@ -182,7 +182,7 @@ Loop {
 		}
 		
 		; If replay lasts too long, stop the recording and end script
-		if scrollCheckCount >= SCROLL_CHECK_MAX {
+		if (scrollCheckCount >= SCROLL_CHECK_MAX) {
 			if (USE_OBS_HOTKEYS) {
 				inputKey(OBS_STOP_RECORDING)
 			}
@@ -216,9 +216,6 @@ if (DO_UPLOAD) {
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
 	StringLower, BROWSER, BROWSER
-	
-	;not used
-	;IniRead, BROWSER_OPEN_WAIT, %INI_PATH%, Behavior, BrowserOpenWaitTime
 	
 	; Begin YouTube upload. Open new browser window, then wait for it to load
 	if (%BROWSER% = chrome) {
