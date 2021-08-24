@@ -306,6 +306,7 @@ end(shutdownVar) {
 
 endError(shutdownVar, errorMsg) {
 	end(shutdownVar)
+	waitSeconds(1)
 	MsgBox %errorMsg%
 	ExitApp
 }
