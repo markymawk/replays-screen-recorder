@@ -70,7 +70,7 @@ IniRead, REPLAYS_EMPTY_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+			
 ; DEBUG
 ;DO_UPLOAD := true
 ;Goto upload
@@ -155,7 +155,7 @@ SCROLL_CHECK_MAX = 540
 
 ; Main loop to cycle through all replays after the first
 Loop {
-	scrollCheckCount = scrollCheckCount + 1
+	scrollCheckCount := scrollCheckCount + 1
 	; Check for "replays" menu text
 	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
@@ -183,7 +183,7 @@ Loop {
 			scrollCheckCount = 0
 		}
 		
-		; If replay lasts too long, stop the recording and end script
+		; If in-game for too long, stop the recording and end script
 		if (scrollCheckCount >= SCROLL_CHECK_MAX) {
 			if (USE_OBS_HOTKEYS) {
 				inputKey(OBS_STOP_RECORDING)
