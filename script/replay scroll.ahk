@@ -336,7 +336,7 @@ inputKey(inputVar, loopCount:=1) {
 
 toBool(var) {
 	StringLower, var, var
-	return (var = "true" or var = 1)
+	return (var = "true" or var >= 1)
 }
 
 waitFrames(framesToWait) {
