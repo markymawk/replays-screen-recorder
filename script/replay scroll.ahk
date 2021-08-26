@@ -155,7 +155,7 @@ SCROLL_CHECK_MAX = 540
 
 ; Main loop to cycle through all replays after the first
 Loop {
-	scrollCheckCount := scrollCheckCount + 1
+	scrollCheckCount += 1
 	; Check for "replays" menu text
 	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
@@ -231,8 +231,8 @@ if (DO_UPLOAD) {
 		endError(END_BEHAVIOR, errorText)
 	}
 	
-	; Check for upload button, waiting 4 seconds each time (100 secs)
-	Loop 25 {
+	; Check for upload button, waiting 4 seconds each time (60 secs)
+	Loop 15 {
 		; Detect upload button
 		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
 		
@@ -324,7 +324,7 @@ inputButton(inputVar, loopCount:=1) {
 }
 
 ; inputKey()
-; Used for sending inputs outside of Dolphin
+; Used for sending inputs outside of Dolphin. Originally used a different Send function, but keeping this anyways to not break things
 
 inputKey(inputVar, loopCount:=1) {
 	Loop, %loopCount% {
@@ -335,6 +335,8 @@ inputKey(inputVar, loopCount:=1) {
 	}
 }
 
+; toBool()
+; Convert ini "true" to bool true
 toBool(var) {
 	StringLower, var, var
 	return (var = "true" or var >= 1)
