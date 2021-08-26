@@ -116,6 +116,7 @@ while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 
 ; Preliminary loop for initial replay
 Loop {
+
 	; Check for "replays" menu text once per second
 	waitSeconds(1)
 	ImageSearch, FoundX, FoundY, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
@@ -270,6 +271,7 @@ if (DO_UPLOAD) {
 	
 	afterUploadWaitLoop:
 	Loop {
+		
 		; Every 60 seconds, check to see if video is still uploading
 		waitSeconds(60)
 		ImageSearch, 0,0, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
@@ -305,10 +307,19 @@ end(shutdownVar) {
 	}
 }
 
+; endError()
+; Call end(), then display error message
 endError(shutdownVar, errorMsg) {
 	end(shutdownVar)
-	waitSeconds(1)
-	MsgBox %errorMsg%
+
+	Gui, Destroy
+	Gui, Add, Text,, % errorMsg
+	Gui, Add, Button, gexitError, OK
+	Gui, Show
+	waitSeconds(2*60)
+	Return
+
+	exitError:
 	ExitApp
 }
 
