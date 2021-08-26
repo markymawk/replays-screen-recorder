@@ -70,10 +70,10 @@ IniRead, REPLAYS_EMPTY_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
-			
+
 ; DEBUG
-;DO_UPLOAD := true
-;Goto upload
+; DO_UPLOAD := true
+; Goto upload
 
 ; Show user interface to choose end behavior
 Gui, Add, Text,, PM/P+ replay screen recorder v0.9`n`nChoose behavior after reaching the end of replays:
@@ -216,6 +216,7 @@ if (DO_UPLOAD) {
 	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 	IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
+	IniRead, UPLOAD_WAIT_TIME, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
 	StringLower, BROWSER, BROWSER
 	
@@ -274,8 +275,8 @@ if (DO_UPLOAD) {
 		ImageSearch, 0,0, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
 		
 		; If uploading text not found, assume upload is complete.
-		; OR after 2 hours (120 loops), exit script regardless of upload status
-		if (ErrorLevel = 1 or A_Index > 120) {
+		; or, after UPLOAD_WAIT_TIME minutes, exit script regardless of upload status
+		if (ErrorLevel = 1 or A_Index > UPLOAD_WAIT_TIME) {
 			Goto end
 		}
 	}
