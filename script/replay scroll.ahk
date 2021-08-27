@@ -19,10 +19,10 @@
 ; Bird for designing the Netplay replay save system, which inspired me to explore this tech to its fullest through 2021
 
 ; Todo:
+; alt empty_P2 png
+; Disable 3+ player replays, using new png+ini
 ; LRA Start combination for replays that are too long
 ; Save prompt settings to ini file, and set to default for future runs
-; Disable 3+ player replays, using new png+ini+GUI setting
-; UploadMinutesMax ini parameter, for time to wait for upload
 
 #NoEnv
 #SingleInstance force
@@ -61,11 +61,17 @@ IniRead, REPLAYS_END_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndUpperL
 IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_END_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightY, A_ScreenHeight
 
-IniRead, REPLAYS_EMPTY_PNG, %INI_PATH%, Images, ReplaysEmpty, 
-IniRead, REPLAYS_EMPTY_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyUpperLeftX, 0
-IniRead, REPLAYS_EMPTY_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyUpperLeftY, 0
-IniRead, REPLAYS_EMPTY_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyLowerRightX, A_ScreenWidth
-IniRead, REPLAYS_EMPTY_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyLowerRightY, A_ScreenHeight
+IniRead, REPLAYS_EMPTY_P2_PNG, %INI_PATH%, Images, ReplaysEmptyP2, 
+IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftX, 0
+IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftY, 0
+IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightX, A_ScreenWidth
+IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightY, A_ScreenHeight
+
+IniRead, REPLAYS_EMPTY_P3_PNG, %INI_PATH%, Images, ReplaysEmptyP3, 
+IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftX, 0
+IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftY, 0
+IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightX, A_ScreenWidth
+IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightY, A_ScreenHeight
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
@@ -124,9 +130,17 @@ Loop {
 	; If in replays menu, check for valid replay
 	if (ErrorLevel = 0) {
 		
-		; If on a single player replay, skip it and recheck loop
-		ImageSearch, X, Y, %REPLAYS_EMPTY_UPPERLEFT_X%, %REPLAYS_EMPTY_UPPERLEFT_Y%, %REPLAYS_EMPTY_LOWERRIGHT_X%, %REPLAYS_EMPTY_LOWERRIGHT_Y%, %REPLAYS_EMPTY_PNG%
+		; If on a single player replay, skip it and recheck loop (ErrorLevel = 0 means image found, port 2 is unused)
+		ImageSearch, X, Y, %REPLAYS_EMPTY_P2_UPPERLEFT_X%, %REPLAYS_EMPTY_P2_UPPERLEFT_Y%, %REPLAYS_EMPTY_P2_LOWERRIGHT_X%, %REPLAYS_EMPTY_P2_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P2_PNG%
 		if (ErrorLevel = 0) {
+			inputButton(RIGHT_PRESS)
+			waitFrames(13)
+			Continue
+		}
+		
+		; If on a 3 or 4 player replay, skip it and recheck loop. (ErrorLevel > 0 means image NOT found, port 3 is used)
+		ImageSearch, X, Y, %REPLAYS_EMPTY_P3_UPPERLEFT_X%, %REPLAYS_EMPTY_P3_UPPERLEFT_Y%, %REPLAYS_EMPTY_P3_LOWERRIGHT_X%, %REPLAYS_EMPTY_P3_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P3_PNG%
+		if (ErrorLevel > 0) {
 			inputButton(RIGHT_PRESS)
 			waitFrames(13)
 			Continue
@@ -175,13 +189,18 @@ Loop {
 		waitFrames(13)
 		
 		; Check for 1-player replay
-		ImageSearch, X, Y, %REPLAYS_EMPTY_UPPERLEFT_X%, %REPLAYS_EMPTY_UPPERLEFT_Y%, %REPLAYS_EMPTY_LOWERRIGHT_X%, %REPLAYS_EMPTY_LOWERRIGHT_Y%, %REPLAYS_EMPTY_PNG%
+		ImageSearch, X, Y, %REPLAYS_EMPTY_P2_UPPERLEFT_X%, %REPLAYS_EMPTY_P2_UPPERLEFT_Y%, %REPLAYS_EMPTY_P2_LOWERRIGHT_X%, %REPLAYS_EMPTY_P2_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P2_PNG%
 		
-		; If not on a 1-player replay, press A to start the replay
+		; If not on a 1-player replay (port 2 used => image NOT found), check if more than 2 players
 		if (ErrorLevel > 0) {
-			inputButton(A_PRESS, 3)
-			waitSeconds(6)	; No need to do anything for a while
-			scrollCheckCount = 0
+			ImageSearch, X, Y, %REPLAYS_EMPTY_P3_UPPERLEFT_X%, %REPLAYS_EMPTY_P3_UPPERLEFT_Y%, %REPLAYS_EMPTY_P3_LOWERRIGHT_X%, %REPLAYS_EMPTY_P3_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P3_PNG%
+			
+			; If exactly 2 players (empty P3 => image IS found), start the replay
+			if (ErrorLevel = 0) {
+				inputButton(A_PRESS, 3)
+				waitSeconds(6)	; No need to do anything for a while
+				scrollCheckCount = 0
+			}
 		}
 		
 		; If in-game for too long, stop the recording and end script
