@@ -130,17 +130,16 @@ Loop {
 	; If in replays menu, check for valid replay
 	if (ErrorLevel = 0) {
 		
-		; If on a single player replay, skip it and recheck loop (ErrorLevel = 0 means image found, port 2 is unused)
+		; If on a single player replay, skip it and recheck loop (ErrorLevel > 0 means image not found, port 2 is used)
 		ImageSearch, X, Y, %REPLAYS_EMPTY_P2_UPPERLEFT_X%, %REPLAYS_EMPTY_P2_UPPERLEFT_Y%, %REPLAYS_EMPTY_P2_LOWERRIGHT_X%, %REPLAYS_EMPTY_P2_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P2_PNG%
-		if (ErrorLevel = 0) {
-			inputButton(RIGHT_PRESS)
-			waitFrames(13)
-			Continue
-		}
+		isPort2Used := (ErrorLevel > 0)
 		
 		; If on a 3 or 4 player replay, skip it and recheck loop. (ErrorLevel > 0 means image NOT found, port 3 is used)
 		ImageSearch, X, Y, %REPLAYS_EMPTY_P3_UPPERLEFT_X%, %REPLAYS_EMPTY_P3_UPPERLEFT_Y%, %REPLAYS_EMPTY_P3_LOWERRIGHT_X%, %REPLAYS_EMPTY_P3_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P3_PNG%
-		if (ErrorLevel > 0) {
+		isPort3Used := (ErrorLevel > 0)
+		
+		; If port 2 is unused OR if port 3 is used, skip this replay and re-check
+		if ((not isPort2Used) or isPort3Used) {
 			inputButton(RIGHT_PRESS)
 			waitFrames(13)
 			Continue
@@ -190,13 +189,15 @@ Loop {
 		
 		; Check for 1-player replay
 		ImageSearch, X, Y, %REPLAYS_EMPTY_P2_UPPERLEFT_X%, %REPLAYS_EMPTY_P2_UPPERLEFT_Y%, %REPLAYS_EMPTY_P2_LOWERRIGHT_X%, %REPLAYS_EMPTY_P2_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P2_PNG%
+		isPort2Used := (ErrorLevel > 0)
 		
-		; If not on a 1-player replay (port 2 used => image NOT found), check if more than 2 players
-		if (ErrorLevel > 0) {
+		; If not on a 1-player replay (port 2 used), check if more than 2 players
+		if (isPort2Used) {
 			ImageSearch, X, Y, %REPLAYS_EMPTY_P3_UPPERLEFT_X%, %REPLAYS_EMPTY_P3_UPPERLEFT_Y%, %REPLAYS_EMPTY_P3_LOWERRIGHT_X%, %REPLAYS_EMPTY_P3_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P3_PNG%
+			isPort3Used := (ErrorLevel > 0)
 			
-			; If exactly 2 players (empty P3 => image IS found), start the replay
-			if (ErrorLevel = 0) {
+			; If exactly 2 players (port 3 unused), start the replay
+			if (not isPort3Used) {
 				inputButton(A_PRESS, 3)
 				waitSeconds(6)	; No need to do anything for a while
 				scrollCheckCount = 0
