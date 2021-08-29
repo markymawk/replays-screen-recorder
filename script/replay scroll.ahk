@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
 ; v1.0
-; Updated 8/23/21
+; Updated 09/2021
 
 ; REQUIRED images in script folder:
 ; replays_end.png
@@ -36,11 +36,11 @@ INI_PATH := "config.ini"
 
 ; Behavior
 IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
-global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
-global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
+global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
+global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
 
 ; Hotkeys
 IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, StartRecordingOBS
@@ -52,18 +52,17 @@ IniRead, R_PRESS, %INI_PATH%, Hotkeys, PressR, S
 IniRead, START_PRESS, %INI_PATH%, Hotkeys, PressStart, Enter
 
 ; Images
-; (Would like to auto-calculate replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos)
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
 IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
 IniRead, REPLAYS_EMPTY_P2_PNG, %INI_PATH%, Images, ReplaysEmptyP2, 
 IniRead, REPLAYS_EMPTY_P3_PNG, %INI_PATH%, Images, ReplaysEmptyP3, 
+; (Would like to auto-calculate bottom-right coords, but need an efficient way to find height/width of image)
 
 ; ImageCoordinates
 IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftX, 0
 IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
 IniRead, REPLAYS_TEXT_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_TEXT_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightY, A_ScreenHeight
-
 REPLAYS_TEXT_COORDS := [REPLAYS_TEXT_UPPERLEFT_X, REPLAYS_TEXT_UPPERLEFT_Y, REPLAYS_TEXT_LOWERRIGHT_X, REPLAYS_TEXT_LOWERRIGHT_Y]
 
 IniRead, REPLAYS_END_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftX, 0
@@ -165,7 +164,7 @@ Loop {
 		REPLAYS_TEXT_UPPERLEFT_Y := %FoundY%
 		
 		inputButton(A_PRESS, 3)
-		waitSeconds(3)
+		waitSeconds(2)
 		break
 	}
 }
@@ -178,6 +177,7 @@ SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
 
 ; Main loop to cycle through all replays after the first
 Loop {
+	waitSeconds(1)
 	scrollCheckCount += 1
 
 	; If "replays" menu text is found, check if at the end of the replays list
@@ -192,21 +192,16 @@ Loop {
 		inputButton(RIGHT_PRESS)
 		waitFrames(13)
 		
-		; Check for 1-player replay
-		isPort2Used := (isPort2Used := (not isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG)))
-		
-		; If not on a 1-player replay (port 2 used), check if more than 2 players
-		if (isPort2Used) {
-			isPort3Used := (not isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
-			
-			; If exactly 2 players (port 3 unused), start the replay
-			if (not isPort3Used) {
-				inputButton(A_PRESS, 3)
-				waitSeconds(6)	; No need to do anything for a while
-				scrollCheckCount = 0
-			}
+		; If exactly 2 players, start the replay
+		isPort2Used := (not isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
+		isPort3Used := (not isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
+		if (isPort2Used and not isPort3Used) {
+			inputButton(A_PRESS, 3)
+			waitSeconds(5)	; No need to do anything for a while
+			scrollCheckCount = 0
 		}
 	}
+	
 	; If replay text is not found, and if in-game for too long, attempt quit out button combo
 	else if (scrollCheckCount >= SCROLL_CHECK_MAX_SECS) {
 		quitOut(L_PRESS, R_PRESS, A_PRESS, START_PRESS)
@@ -218,6 +213,7 @@ Loop {
 			Continue
 		}
 		
+		; If quitting out of the game didn't make the replay text appear, exit the script using endError()
 		else {
 			if (USE_OBS_HOTKEYS) {
 				inputKey(OBS_STOP_RECORDING)
@@ -226,12 +222,7 @@ Loop {
 			errorText = Replay exceeds time limit. Recording stopped and saved.
 			endError(END_BEHAVIOR, errorText)
 		}
-	}
-	
-	; If replays menu text not found and not at max time, wait a second between screen checks
-	else {
-		waitSeconds(1)
-	}
+	}	
 }
 
 ; After finishing the scroll loop, stop OBS recording
@@ -314,12 +305,12 @@ if (DO_UPLOAD) {
 		ImageSearch, 0,0, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
 		
 		; If uploading text not found, assume upload is complete.
-		; or, after UPLOAD_WAIT_TIME_MINS minutes, exit script regardless of upload status
 		if (UPLOAD_WAIT_TIME_MINS > 0 and A_Index > UPLOAD_WAIT_TIME_MINS) {
 			errorText = Upload time exceeded UploadWaitTimeMinutes value.`n`nClosing script.
 			endError(END_BEHAVIOR, errorText)
 		}
 		
+		; Exit script after UPLOAD_WAIT_TIME_MINS, regardless of upload status
 		if (ErrorLevel = 1 or A_Index > UPLOAD_WAIT_TIME_MINS) {
 			Goto end
 		}
@@ -342,6 +333,7 @@ isImageFound(coordsList, pngFile) {
 	ImageSearch,,, % coordsList[1], % coordsList[2], % coordsList[3], % coordsList[4], % pngFile
 	return (ErrorLevel = 0)
 }
+
 ; quitOut()
 ; Send L+R+A+Start button combo to close out a game
 quitOut(L, R, A, START) {
