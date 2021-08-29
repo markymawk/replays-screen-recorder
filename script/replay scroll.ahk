@@ -78,8 +78,9 @@ IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmp
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; DEBUG
-; DO_UPLOAD := true
-; Goto upload
+;END_BEHAVIOR := 1
+;DO_UPLOAD := true
+;Goto upload
 
 ; Show user interface to choose end behavior
 Gui, Add, Text,, PM/P+ replay screen recorder v0.9`n`nChoose behavior after reaching the end of replays:
@@ -141,7 +142,6 @@ Loop {
 		; If port 2 is unused OR if port 3 is used, skip this replay and re-check
 		if ((not isPort2Used) or isPort3Used) {
 			inputButton(RIGHT_PRESS)
-			waitFrames(13)
 			Continue
 		}
 		
@@ -215,7 +215,7 @@ Loop {
 		}
 	}
 	
-	; If replays menu text not found, wait a sec between screen checks
+	; If replays menu text not found, wait a second between screen checks
 	else {
 		waitSeconds(1)
 	}
@@ -262,6 +262,7 @@ if (DO_UPLOAD) {
 		if (ErrorLevel = 0) {
 			Goto uploadClick
 		}
+		
 		; If not found, check alt button
 		else {
 			ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
@@ -273,9 +274,9 @@ if (DO_UPLOAD) {
 		waitSeconds(4)
 	}
 	
-	; uploadButtonNotFound label only used if uploadClick is not accessed via the above loop.
+	; uploadButtonNotFound label only accessed if uploadClick is not accessed via the above loop.
 	uploadButtonNotFound:
-	errorText = Upload button not detected. Replay mp4 should still be saved.`n`nQuitting script without uploading
+	errorText = Upload button not detected. Replay mp4 should still be saved.`n`nQuitting script without uploading.
 	endError(END_BEHAVIOR, errorText)
 	
 	; Click upload button
@@ -308,9 +309,9 @@ end:
 end(END_BEHAVIOR)
 ExitApp
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;
 ; Helper methods
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;
 
 ; end()
 ; Terminate the script based on config
