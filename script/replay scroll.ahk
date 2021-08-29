@@ -7,6 +7,8 @@
 ; replays_end.png
 ; replays_text.png
 ; replays_empty.png
+; replays_character_icon_P2.png
+; replays_character_icon_P3.png
 
 ; OPTIONAL images for auto-uploading:
 ; upload_button.png
@@ -18,8 +20,8 @@
 ; Bird for designing the Netplay replay save system, which inspired me to explore this tech to its fullest through 2021
 
 ; Todo:
-; alt empty_P2 png
 ; Save prompt settings to ini file, and set to default for future runs
+; Tabs in GUI for settings?
 
 #NoEnv
 #SingleInstance force
@@ -53,8 +55,8 @@ IniRead, START_PRESS, %INI_PATH%, Hotkeys, PressStart, Enter
 ; Images
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
 IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
-IniRead, REPLAYS_EMPTY_P2_PNG, %INI_PATH%, Images, ReplaysEmptyP2, 
-IniRead, REPLAYS_EMPTY_P3_PNG, %INI_PATH%, Images, ReplaysEmptyP3, 
+IniRead, REPLAYS_CHAR_ICON_P2_PNG, %INI_PATH%, Images, ReplaysCharacterIconP2, 
+IniRead, REPLAYS_CHAR_ICON_P3_PNG, %INI_PATH%, Images, ReplaysCharacterIconP3, 
 ; (Would like to auto-calculate bottom-right coords, but need an efficient way to find height/width of image)
 
 ; ImageCoordinates
@@ -70,17 +72,17 @@ IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLower
 IniRead, REPLAYS_END_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightY, A_ScreenHeight
 REPLAYS_END_COORDS := [REPLAYS_END_UPPERLEFT_X, REPLAYS_END_UPPERLEFT_Y, REPLAYS_END_LOWERRIGHT_X, REPLAYS_END_LOWERRIGHT_Y]
 
-IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftX, 0
-IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftY, 0
-IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightX, A_ScreenWidth
-IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightY, A_ScreenHeight
-REPLAYS_EMPTY_P2_COORDS := [REPLAYS_EMPTY_P2_UPPERLEFT_X, REPLAYS_EMPTY_P2_UPPERLEFT_Y, REPLAYS_EMPTY_P2_LOWERRIGHT_X, REPLAYS_EMPTY_P2_LOWERRIGHT_Y]
+IniRead, REPLAYS_CHAR_ICON_P2_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP2UpperLeftX, 0
+IniRead, REPLAYS_CHAR_ICON_P2_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP2UpperLeftY, 0
+IniRead, REPLAYS_CHAR_ICON_P2_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP2LowerRightX, A_ScreenWidth
+IniRead, REPLAYS_CHAR_ICON_P2_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP2LowerRightY, A_ScreenHeight
+REPLAYS_CHAR_ICON_P2_COORDS := [REPLAYS_CHAR_ICON_P2_UPPERLEFT_X, REPLAYS_CHAR_ICON_P2_UPPERLEFT_Y, REPLAYS_CHAR_ICON_P2_LOWERRIGHT_X, REPLAYS_CHAR_ICON_P2_LOWERRIGHT_Y]
 
-IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftX, 0
-IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftY, 0
-IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightX, A_ScreenWidth
-IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightY, A_ScreenHeight
-REPLAYS_EMPTY_P3_COORDS := [REPLAYS_EMPTY_P3_UPPERLEFT_X, REPLAYS_EMPTY_P3_UPPERLEFT_Y, REPLAYS_EMPTY_P3_LOWERRIGHT_X, REPLAYS_EMPTY_P3_LOWERRIGHT_Y]
+IniRead, REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP3UpperLeftX, 0
+IniRead, REPLAYS_CHAR_ICON_P3_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP3UpperLeftY, 0
+IniRead, REPLAYS_CHAR_ICON_P3_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP3LowerRightX, A_ScreenWidth
+IniRead, REPLAYS_CHAR_ICON_P3_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysCharacterIconP3LowerRightY, A_ScreenHeight
+REPLAYS_CHAR_ICON_P3_COORDS := [REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, REPLAYS_CHAR_ICON_P3_UPPERLEFT_Y, REPLAYS_CHAR_ICON_P3_LOWERRIGHT_X, REPLAYS_CHAR_ICON_P3_LOWERRIGHT_Y]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
@@ -141,10 +143,10 @@ Loop {
 	if (ErrorLevel = 0) {
 		
 		; Check if on a 1 player replay. (ErrorLevel > 0 means image not found, port 2 is used)
-		isPort2Used := (isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
+		isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
 		
 		; Check if on a 3+ player replay. (ErrorLevel > 0 means image NOT found, port 3 is used)
-		isPort3Used := (isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
+		isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
 		
 		; If port 2 is unused OR if port 3 is used, skip this replay and re-check
 		if ((not isPort2Used) or isPort3Used) {
@@ -192,8 +194,8 @@ Loop {
 		waitFrames(13)
 		
 		; If exactly 2 players, start the replay
-		isPort2Used := (isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
-		isPort3Used := (isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
+		isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
+		isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
 		if (isPort2Used and not isPort3Used) {
 			inputButton(A_PRESS, 3)
 			waitSeconds(5)	; No need to do anything for a while
