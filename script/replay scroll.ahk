@@ -20,7 +20,6 @@
 
 ; Todo:
 ; alt empty_P2 png
-; Disable 3+ player replays, using new png+ini
 ; LRA Start combination for replays that are too long
 ; Save prompt settings to ini file, and set to default for future runs
 
@@ -47,6 +46,7 @@ IniRead, A_PRESS, %INI_PATH%, Hotkeys, PressA, X
 IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
+IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
 
 ; Want to auto-calculate replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
@@ -165,11 +165,12 @@ Loop {
 scrollCheckCount = 0
 
 ; Time, in seconds, that a game can last before quitting out of the script
-SCROLL_CHECK_MAX = 540
+SCROLL_CHECK_MAX_SECS := SCROLL_CHECK_MAX_MINS * 60
 
 ; Main loop to cycle through all replays after the first
 Loop {
 	scrollCheckCount += 1
+	
 	; Check for "replays" menu text
 	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
@@ -205,7 +206,7 @@ Loop {
 		}
 		
 		; If in-game for too long, stop the recording and end script
-		if (scrollCheckCount >= SCROLL_CHECK_MAX) {
+		if (scrollCheckCount >= SCROLL_CHECK_MAX_SECS) {
 			if (USE_OBS_HOTKEYS) {
 				inputKey(OBS_STOP_RECORDING)
 			}
@@ -237,9 +238,13 @@ if (DO_UPLOAD) {
 	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 	IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
-	IniRead, UPLOAD_WAIT_TIME, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
+	IniRead, UPLOAD_WAIT_TIME_MINS, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
 	StringLower, BROWSER, BROWSER
+	
+	if (UPLOAD_WAIT_TIME_MINS <= 0) {
+		UPLOAD_WAIT_TIME_MINS := 999
+	}
 	
 	; Begin YouTube upload. Open new browser window, then wait for it to load
 	if (%BROWSER% = chrome) {
@@ -289,19 +294,25 @@ if (DO_UPLOAD) {
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
 	Send {Enter}
+	waitSeconds(10)
 	
-	afterUploadWaitLoop:
+	; Every 60 seconds, check to see if video is still uploading
+	uploadWaitLoop:
 	Loop {
-		
-		; Every 60 seconds, check to see if video is still uploading
-		waitSeconds(60)
 		ImageSearch, 0,0, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOADING_TEXT_PNG%
 		
 		; If uploading text not found, assume upload is complete.
-		; or, after UPLOAD_WAIT_TIME minutes, exit script regardless of upload status
-		if (ErrorLevel = 1 or A_Index > UPLOAD_WAIT_TIME) {
+		; or, after UPLOAD_WAIT_TIME_MINS minutes, exit script regardless of upload status
+		if (UPLOAD_WAIT_TIME_MINS > 0 and A_Index > UPLOAD_WAIT_TIME_MINS) {
+			errorText = Upload time exceeded UploadWaitTimeMinutes value.`n`nClosing script.
+			endError(END_BEHAVIOR, errorText)
+		}
+		
+		if (ErrorLevel = 1 or A_Index > UPLOAD_WAIT_TIME_MINS) {
 			Goto end
 		}
+		
+		waitSeconds(60)
 	}
 }
 
