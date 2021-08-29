@@ -10,7 +10,6 @@
 
 ; OPTIONAL images for auto-uploading:
 ; upload_button.png
-; upload_button2.png
 ; uploading_text.png
 
 ; Recommended: disable any real Gamecube/USB controllers in Dolphin
@@ -142,10 +141,10 @@ Loop {
 	if (ErrorLevel = 0) {
 		
 		; Check if on a 1 player replay. (ErrorLevel > 0 means image not found, port 2 is used)
-		isPort2Used := (not isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
+		isPort2Used := (isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
 		
 		; Check if on a 3+ player replay. (ErrorLevel > 0 means image NOT found, port 3 is used)
-		isPort3Used := (not isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
+		isPort3Used := (isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
 		
 		; If port 2 is unused OR if port 3 is used, skip this replay and re-check
 		if ((not isPort2Used) or isPort3Used) {
@@ -193,8 +192,8 @@ Loop {
 		waitFrames(13)
 		
 		; If exactly 2 players, start the replay
-		isPort2Used := (not isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
-		isPort3Used := (not isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
+		isPort2Used := (isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
+		isPort3Used := (isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
 		if (isPort2Used and not isPort3Used) {
 			inputButton(A_PRESS, 3)
 			waitSeconds(5)	; No need to do anything for a while
