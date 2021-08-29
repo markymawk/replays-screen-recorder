@@ -20,7 +20,6 @@
 
 ; Todo:
 ; alt empty_P2 png
-; LRA Start combination for replays that are too long
 ; Save prompt settings to ini file, and set to default for future runs
 
 #NoEnv
@@ -71,14 +70,19 @@ IniRead, REPLAYS_END_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEndUpperL
 IniRead, REPLAYS_END_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftY, 0
 IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_END_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightY, A_ScreenHeight
+REPLAYS_END_COORDS := [REPLAYS_END_UPPERLEFT_X, REPLAYS_END_UPPERLEFT_Y, REPLAYS_END_LOWERRIGHT_X, REPLAYS_END_LOWERRIGHT_Y]
+
 IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftX, 0
 IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftY, 0
 IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightX, A_ScreenWidth
 IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightY, A_ScreenHeight
+REPLAYS_EMPTY_P2_COORDS := [REPLAYS_EMPTY_P2_UPPERLEFT_X, REPLAYS_EMPTY_P2_UPPERLEFT_Y, REPLAYS_EMPTY_P2_LOWERRIGHT_X, REPLAYS_EMPTY_P2_LOWERRIGHT_Y]
+
 IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftX, 0
 IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftY, 0
 IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightX, A_ScreenWidth
 IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightY, A_ScreenHeight
+REPLAYS_EMPTY_P3_COORDS := [REPLAYS_EMPTY_P3_UPPERLEFT_X, REPLAYS_EMPTY_P3_UPPERLEFT_Y, REPLAYS_EMPTY_P3_LOWERRIGHT_X, REPLAYS_EMPTY_P3_LOWERRIGHT_Y]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; THE PARTS THAT DO THINGS
@@ -138,13 +142,11 @@ Loop {
 	; If in replays menu, check for valid replay
 	if (ErrorLevel = 0) {
 		
-		; If on a single player replay, skip it and recheck loop (ErrorLevel > 0 means image not found, port 2 is used)
-		ImageSearch, X, Y, %REPLAYS_EMPTY_P2_UPPERLEFT_X%, %REPLAYS_EMPTY_P2_UPPERLEFT_Y%, %REPLAYS_EMPTY_P2_LOWERRIGHT_X%, %REPLAYS_EMPTY_P2_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P2_PNG%
-		isPort2Used := (ErrorLevel > 0)
+		; Check if on a 1 player replay. (ErrorLevel > 0 means image not found, port 2 is used)
+		isPort2Used := (not isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG))
 		
-		; If on a 3 or 4 player replay, skip it and recheck loop. (ErrorLevel > 0 means image NOT found, port 3 is used)
-		ImageSearch, X, Y, %REPLAYS_EMPTY_P3_UPPERLEFT_X%, %REPLAYS_EMPTY_P3_UPPERLEFT_Y%, %REPLAYS_EMPTY_P3_LOWERRIGHT_X%, %REPLAYS_EMPTY_P3_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P3_PNG%
-		isPort3Used := (ErrorLevel > 0)
+		; Check if on a 3+ player replay. (ErrorLevel > 0 means image NOT found, port 3 is used)
+		isPort3Used := (not isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
 		
 		; If port 2 is unused OR if port 3 is used, skip this replay and re-check
 		if ((not isPort2Used) or isPort3Used) {
@@ -163,7 +165,7 @@ Loop {
 		REPLAYS_TEXT_UPPERLEFT_Y := %FoundY%
 		
 		inputButton(A_PRESS, 3)
-		waitSeconds(5)
+		waitSeconds(3)
 		break
 	}
 }
@@ -180,10 +182,9 @@ Loop {
 
 	; If "replays" menu text is found, check if at the end of the replays list
 	if (isImageFound(REPLAYS_TEXT_COORDS, REPLAYS_TEXT_PNG)) {
+	
 		; If at the end of the replays list, break the loop
-		ImageSearch, X, Y, %REPLAYS_END_UPPERLEFT_X%, %REPLAYS_END_UPPERLEFT_Y%, %REPLAYS_END_LOWERRIGHT_X%, %REPLAYS_END_LOWERRIGHT_Y%, %REPLAYS_END_PNG%
-		
-		if (ErrorLevel = 0) {
+		if (isImageFound(REPLAYS_END_COORDS, REPLAYS_END_PNG)) {
 			break
 		}
 		
@@ -192,13 +193,11 @@ Loop {
 		waitFrames(13)
 		
 		; Check for 1-player replay
-		ImageSearch, X, Y, %REPLAYS_EMPTY_P2_UPPERLEFT_X%, %REPLAYS_EMPTY_P2_UPPERLEFT_Y%, %REPLAYS_EMPTY_P2_LOWERRIGHT_X%, %REPLAYS_EMPTY_P2_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P2_PNG%
-		isPort2Used := (ErrorLevel > 0)
+		isPort2Used := (isPort2Used := (not isImageFound(REPLAYS_EMPTY_P2_COORDS, REPLAYS_EMPTY_P2_PNG)))
 		
 		; If not on a 1-player replay (port 2 used), check if more than 2 players
 		if (isPort2Used) {
-			ImageSearch, X, Y, %REPLAYS_EMPTY_P3_UPPERLEFT_X%, %REPLAYS_EMPTY_P3_UPPERLEFT_Y%, %REPLAYS_EMPTY_P3_LOWERRIGHT_X%, %REPLAYS_EMPTY_P3_LOWERRIGHT_Y%, %REPLAYS_EMPTY_P3_PNG%
-			isPort3Used := (ErrorLevel > 0)
+			isPort3Used := (not isImageFound(REPLAYS_EMPTY_P3_COORDS, REPLAYS_EMPTY_P3_PNG))
 			
 			; If exactly 2 players (port 3 unused), start the replay
 			if (not isPort3Used) {
@@ -214,8 +213,7 @@ Loop {
 		waitSeconds(3)
 		
 		; If back on the replay menu, continue like normal
-		ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
-		if (ErrorLevel = 0) {
+		if (isImageFound(REPLAYS_TEXT_COORDS, REPLAYS_TEXT_PNG)) {
 			scrollCheckCount = 0
 			Continue
 		}
