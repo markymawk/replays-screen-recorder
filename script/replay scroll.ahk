@@ -44,8 +44,8 @@ global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
 
 ; Hotkeys
-IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, StartRecordingOBS
-IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, StopRecordingOBS
+IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, OBSStartRecording
+IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, OBSStopRecording
 IniRead, A_PRESS, %INI_PATH%, Hotkeys, PressA, X
 IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 IniRead, L_PRESS, %INI_PATH%, Hotkeys, PressL, A
