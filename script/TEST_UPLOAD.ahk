@@ -1,7 +1,6 @@
 ﻿INI_PATH := "config.ini"
 
 IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
-IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
 IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
@@ -28,14 +27,6 @@ Loop 25 {
 	; If found, click button
 	if (ErrorLevel = 0) {
 		Goto uploadClick
-	}
-	; If not found, check alt button
-	else {
-		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
-		
-		if (ErrorLevel = 0) {
-			Goto uploadClick
-		}
 	}
 	waitSeconds(4)
 }

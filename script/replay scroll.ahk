@@ -239,7 +239,6 @@ if (CLOSE_DOLPHIN) {
 upload:
 if (DO_UPLOAD) {
 	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
-	IniRead, UPLOAD_BUTTON_ALT_PNG, %INI_PATH%, Images, UploadButtonAlt
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	IniRead, UPLOAD_WAIT_TIME_MINS, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
@@ -271,14 +270,6 @@ if (DO_UPLOAD) {
 			Goto uploadClick
 		}
 		
-		; If not found, check alt button
-		else {
-			ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_ALT_PNG%
-			
-			if (ErrorLevel = 0) {
-				Goto uploadClick
-			}
-		}
 		waitSeconds(4)
 	}
 	
