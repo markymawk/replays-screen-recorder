@@ -64,6 +64,9 @@ IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUppe
 IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
 IniRead, REPLAYS_TEXT_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_TEXT_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightY, A_ScreenHeight
+
+REPLAYS_TEXT_COORDS := [REPLAYS_TEXT_UPPERLEFT_X, REPLAYS_TEXT_UPPERLEFT_Y, REPLAYS_TEXT_LOWERRIGHT_X, REPLAYS_TEXT_LOWERRIGHT_Y]
+
 IniRead, REPLAYS_END_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftX, 0
 IniRead, REPLAYS_END_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftY, 0
 IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightX, A_ScreenWidth
@@ -175,11 +178,8 @@ SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
 Loop {
 	scrollCheckCount += 1
 
-	; Check for "replays" menu text
-	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
-	
-	; If text is found, check if at the end of the replays list
-	if (ErrorLevel = 0) {
+	; If "replays" menu text is found, check if at the end of the replays list
+	if (isImageFound(REPLAYS_TEXT_COORDS, REPLAYS_TEXT_PNG)) {
 		; If at the end of the replays list, break the loop
 		ImageSearch, X, Y, %REPLAYS_END_UPPERLEFT_X%, %REPLAYS_END_UPPERLEFT_Y%, %REPLAYS_END_LOWERRIGHT_X%, %REPLAYS_END_LOWERRIGHT_Y%, %REPLAYS_END_PNG%
 		
@@ -338,6 +338,12 @@ ExitApp
 ; Helper methods
 ;;;;;;;;;;;;;;;;;;;;;;;
 
+; isImageFound()
+; Boolean implementation of ImageSearch which uses a list[4] of coordinates for readability
+isImageFound(coordsList, pngFile) {
+	ImageSearch,,, % coordsList[1], % coordsList[2], % coordsList[3], % coordsList[4], % pngFile
+	return (ErrorLevel = 0)
+}
 ; quitOut()
 ; Send L+R+A+Start button combo to close out a game
 quitOut(L, R, A, START) {
