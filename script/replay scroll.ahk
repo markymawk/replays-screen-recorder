@@ -35,39 +35,43 @@ CoordMode Mouse Screen
 ;;;;;;;;;
 INI_PATH := "config.ini"
 
+; Behavior
 IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
-IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
 global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
+IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
 global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
+IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
+IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
 
+; Hotkeys
 IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, StartRecordingOBS
 IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, StopRecordingOBS
 IniRead, A_PRESS, %INI_PATH%, Hotkeys, PressA, X
 IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
+IniRead, L_PRESS, %INI_PATH%, Hotkeys, PressL, A
+IniRead, R_PRESS, %INI_PATH%, Hotkeys, PressR, S
+IniRead, START_PRESS, %INI_PATH%, Hotkeys, PressStart, Enter
 
-IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
-IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
-
-; Want to auto-calculate replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos
+; Images
+; (Would like to auto-calculate replays_text coordinates, but need an efficient way to find height/width of image in order to know lower-right x,y pos)
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
+IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
+IniRead, REPLAYS_EMPTY_P2_PNG, %INI_PATH%, Images, ReplaysEmptyP2, 
+IniRead, REPLAYS_EMPTY_P3_PNG, %INI_PATH%, Images, ReplaysEmptyP3, 
+
+; ImageCoordinates
 IniRead, REPLAYS_TEXT_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftX, 0
 IniRead, REPLAYS_TEXT_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextUpperLeftY, 0
 IniRead, REPLAYS_TEXT_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_TEXT_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysTextLowerRightY, A_ScreenHeight
-
-IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
 IniRead, REPLAYS_END_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftX, 0
 IniRead, REPLAYS_END_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndUpperLeftY, 0
 IniRead, REPLAYS_END_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightX, A_ScreenWidth
 IniRead, REPLAYS_END_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEndLowerRightY, A_ScreenHeight
-
-IniRead, REPLAYS_EMPTY_P2_PNG, %INI_PATH%, Images, ReplaysEmptyP2, 
 IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftX, 0
 IniRead, REPLAYS_EMPTY_P2_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2UpperLeftY, 0
 IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightX, A_ScreenWidth
 IniRead, REPLAYS_EMPTY_P2_LOWERRIGHT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP2LowerRightY, A_ScreenHeight
-
-IniRead, REPLAYS_EMPTY_P3_PNG, %INI_PATH%, Images, ReplaysEmptyP3, 
 IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftX, 0
 IniRead, REPLAYS_EMPTY_P3_UPPERLEFT_Y, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3UpperLeftY, 0
 IniRead, REPLAYS_EMPTY_P3_LOWERRIGHT_X, %INI_PATH%, ImageCoordinates, ReplaysEmptyP3LowerRightX, A_ScreenWidth
