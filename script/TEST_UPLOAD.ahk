@@ -57,6 +57,8 @@ waitSeconds(10)
 Send %OUTPUT_VIDEO_PATH%
 Send {Enter}
 
+ExitApp
+
 waitSeconds(secsToWait) {
 	Sleep secsToWait * 1000
 }
