@@ -169,18 +169,17 @@ Loop {
 scrollCheckCount = 0
 
 ; Time, in seconds, that a game can last before quitting out of the script
-SCROLL_CHECK_MAX_SECS := SCROLL_CHECK_MAX_MINS * 60
+SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
 
 ; Main loop to cycle through all replays after the first
 Loop {
 	scrollCheckCount += 1
-	
+
 	; Check for "replays" menu text
 	ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
 	; If text is found, check if at the end of the replays list
 	if (ErrorLevel = 0) {
-	
 		; If at the end of the replays list, break the loop
 		ImageSearch, X, Y, %REPLAYS_END_UPPERLEFT_X%, %REPLAYS_END_UPPERLEFT_Y%, %REPLAYS_END_LOWERRIGHT_X%, %REPLAYS_END_LOWERRIGHT_Y%, %REPLAYS_END_PNG%
 		
@@ -208,9 +207,20 @@ Loop {
 				scrollCheckCount = 0
 			}
 		}
+	}
+	; If replay text is not found, and if in-game for too long, attempt quit out button combo
+	else if (scrollCheckCount >= SCROLL_CHECK_MAX_SECS) {
+		quitOut(L_PRESS, R_PRESS, A_PRESS, START_PRESS)
+		waitSeconds(3)
 		
-		; If in-game for too long, stop the recording and end script
-		if (scrollCheckCount >= SCROLL_CHECK_MAX_SECS) {
+		; If back on the replay menu, continue like normal
+		ImageSearch, X, Y, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
+		if (ErrorLevel = 0) {
+			scrollCheckCount = 0
+			Continue
+		}
+		
+		else {
 			if (USE_OBS_HOTKEYS) {
 				inputKey(OBS_STOP_RECORDING)
 			}
@@ -220,7 +230,7 @@ Loop {
 		}
 	}
 	
-	; If replays menu text not found, wait a second between screen checks
+	; If replays menu text not found and not at max time, wait a second between screen checks
 	else {
 		waitSeconds(1)
 	}
@@ -328,9 +338,24 @@ ExitApp
 ; Helper methods
 ;;;;;;;;;;;;;;;;;;;;;;;
 
+; quitOut()
+; Send L+R+A+Start button combo to close out a game
+quitOut(L, R, A, START) {
+	Send, {%L% down}
+	Send {%R% down}
+	Send {%A% down}
+	Send {%START% down}
+	Sleep 300
+	
+	Send {%L% up}
+	Send {%R% up}
+	Send {%A% up}
+	Send {%START% up}
+	Sleep 500
+}
+
 ; end()
 ; Terminate the script based on config
-
 end(shutdownVar) {
 	; Put PC to sleep if 1
 	if (shutdownVar = 1)	{			
