@@ -7,10 +7,10 @@
 ; replays_end.png
 ; replays_text.png
 ; replays_empty.png
+
+; OPTIONAL images for extra functionality:
 ; replays_character_icon_P2.png
 ; replays_character_icon_P3.png
-
-; OPTIONAL images for auto-uploading:
 ; upload_button.png
 ; uploading_text.png
 
@@ -40,8 +40,13 @@ IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
 IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
+IniRead, SKIP_1P_REPLAYS, %INI_PATH%, Behavior, SkipSoloReplays, false
+IniRead, SKIP_3P_REPLAYS, %INI_PATH%, Behavior, SkipFFADoubles, false
+
 global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
+global SKIP_1P_REPLAYS := toBool(SKIP_1P_REPLAYS)
+global SKIP_3P_REPLAYS := toBool(SKIP_3P_REPLAYS)
 
 ; Hotkeys
 IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, OBSStartRecording
@@ -141,17 +146,18 @@ Loop {
 	
 	; If in replays menu, check for valid replay
 	if (ErrorLevel = 0) {
+		if (SKIP_1P_REPLAYS) {
 		
-		; Check if on a 1 player replay. (ErrorLevel > 0 means image not found, port 2 is used)
-		isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
-		
-		; Check if on a 3+ player replay. (ErrorLevel > 0 means image NOT found, port 3 is used)
-		isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
-		
-		; If port 2 is unused OR if port 3 is used, skip this replay and re-check
-		if ((not isPort2Used) or isPort3Used) {
-			inputButton(RIGHT_PRESS)
-			Continue
+			; Check if on a 1 player replay. (ErrorLevel > 0 means image not found, port 2 is used)
+			isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
+			
+			; Check if on a 3+ player replay. (ErrorLevel > 0 means image NOT found, port 3 is used)
+			isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
+			
+			if (not isPort2Used and SKIP_1P_REPLAYS) or (isPort3Used and SKIP_3P_REPLAYS) {
+				inputButton(RIGHT_PRESS)
+				Continue
+			}
 		}
 		
 		; If on a valid replay, start the replay and exit this loop
@@ -196,7 +202,8 @@ Loop {
 		; If exactly 2 players, start the replay
 		isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
 		isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
-		if (isPort2Used and not isPort3Used) {
+		
+		if ((isPort2Used or not SKIP_1P_REPLAYS) and (not isPort3Used or not SKIP_3P_REPLAYS)) {
 			inputButton(A_PRESS, 3)
 			waitSeconds(5)	; No need to do anything for a while
 			scrollCheckCount = 0
@@ -400,7 +407,7 @@ inputKey(inputVar, loopCount:=1) {
 ; Convert ini "true" to bool true
 toBool(var) {
 	StringLower, var, var
-	return (var = "true" or var >= 1)
+	return (var = "true")
 }
 
 waitFrames(framesToWait) {
