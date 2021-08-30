@@ -99,7 +99,7 @@ REPLAYS_CHAR_ICON_P3_COORDS := [REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, REPLAYS_CHAR_I
 ;Goto upload
 
 ; Show user interface to choose end behavior
-Gui, Add, Text,, PM/P+ replay screen recorder v0.9`n`nChoose behavior after reaching the end of replays:
+Gui, Add, Text,, PM/P+ replay screen recorder v1.0`n`nChoose behavior after reaching the end of replays:
 Gui, Add, Radio, Checked vRadioSleep, Set PC to sleep
 Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
