@@ -36,27 +36,26 @@ CoordMode Mouse Screen
 INI_PATH := "config.ini"
 
 ; Behavior
-IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphin, false
-IniRead, USE_OBS_HOTKEYS, %INI_PATH%, Behavior, UseOBSHotkeys, false
+IniRead, CLOSE_DOLPHIN, %INI_PATH%, Behavior, CloseDolphinOnFinish, false
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
 IniRead, SKIP_1P_REPLAYS, %INI_PATH%, Behavior, SkipSoloReplays, false
 IniRead, SKIP_3P_REPLAYS, %INI_PATH%, Behavior, SkipFFADoubles, false
 
 global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
-global USE_OBS_HOTKEYS := toBool(USE_OBS_HOTKEYS)
 global SKIP_1P_REPLAYS := toBool(SKIP_1P_REPLAYS)
 global SKIP_3P_REPLAYS := toBool(SKIP_3P_REPLAYS)
 
 ; Hotkeys
-IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, OBSStartRecording
-IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, OBSStopRecording
+IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, OBSStartRecording, 0
+IniRead, OBS_STOP_RECORDING, %INI_PATH%, Hotkeys, OBSStopRecording, 0
 IniRead, A_PRESS, %INI_PATH%, Hotkeys, PressA, X
 IniRead, RIGHT_PRESS, %INI_PATH%, Hotkeys, PressRight, Right
 IniRead, L_PRESS, %INI_PATH%, Hotkeys, PressL, A
 IniRead, R_PRESS, %INI_PATH%, Hotkeys, PressR, S
 IniRead, START_PRESS, %INI_PATH%, Hotkeys, PressStart, Enter
 
+global USE_OBS_HOTKEYS := (OBS_START_RECORDING or OBS_STOP_RECORDING)
 ; Images
 IniRead, REPLAYS_TEXT_PNG, %INI_PATH%, Images, ReplaysText
 IniRead, REPLAYS_END_PNG, %INI_PATH%, Images, ReplaysEnd, 
@@ -109,7 +108,7 @@ if (USE_OBS_HOTKEYS) {
 }
 else {
 	DO_UPLOAD := false
-	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually. Auto-upload disabled.`n
+	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually. Auto-upload disabled.
 }
 Gui, Add, Text,, Navigate to the first replay in the replay menu,`nthen press OK to continue, or Cancel to quit.
 Gui, Add, Button, Default w120 gContinue, OK
