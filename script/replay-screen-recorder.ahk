@@ -239,12 +239,14 @@ if (USE_OBS_HOTKEYS) {
 
 ; Close Dolphin window
 if (CLOSE_DOLPHIN) {
-	inputKey("Escape")	; Escape key to close Dolphin
+	Process, Close, dolphin.exe
 	waitSeconds(1.5)
 }
 
 upload:
 if (DO_UPLOAD) {
+	; Window detection
+	SetTitleMatchMode, 2
 	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	IniRead, UPLOAD_WAIT_TIME_MINS, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
