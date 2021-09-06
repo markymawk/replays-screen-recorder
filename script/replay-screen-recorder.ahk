@@ -245,12 +245,14 @@ if (CLOSE_DOLPHIN) {
 
 upload:
 if (DO_UPLOAD) {
-	; Window detection
+	; Window detection mode
 	SetTitleMatchMode, 2
-	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
+	
+	; Set & initialize parameters
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	IniRead, UPLOAD_WAIT_TIME_MINS, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
-	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
+	IniRead, TAB_PRESS_COUNT, %INI_PATH%, Behavior, UploadPageTabPresses, 3
+	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser, chrome
 	StringLower, BROWSER, BROWSER
 	
 	if (UPLOAD_WAIT_TIME_MINS <= 0) {
@@ -260,51 +262,35 @@ if (DO_UPLOAD) {
 	; Begin YouTube upload. Open new browser window, then wait for it to load
 	if (%BROWSER% = chrome) {
 		Run chrome.exe "https://youtube.com/upload" "--new-window"
-		waitSeconds(2)
-		WinActivate, Chrome
-		WinMaximize, Chrome
 	}
 	else if (%BROWSER% = firefox) {
 		Run firefox.exe "https://youtube.com/upload" "--new-window"
-		waitSeconds(2)
-		WinActivate, Firefox
-		WinMaximize, Firefox
 	}
 	else {
 		errorText = Browser setting invalid. Replay mp4 should still be saved.`n`nQuitting script without uploading.
 		endError(END_BEHAVIOR, errorText)
 	}
-	
-	; Check for upload button, waiting 4 seconds each time (60 secs)
-	Loop 15 {
-		; Detect upload button
-		ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
-		
-		; If found, click button
-		if (ErrorLevel = 0) {
-			Goto uploadClick
-		}
-		
-		waitSeconds(4)
-	}
-	
-	; uploadButtonNotFound label only accessed if uploadClick is not accessed via the above loop.
-	uploadButtonNotFound:
-	errorText = Upload button not detected. Replay mp4 should still be saved.`n`nQuitting script without uploading.
-	endError(END_BEHAVIOR, errorText)
-	
-	; Click upload button
-	uploadClick:
-	Click, , %FoundX%, %FoundY%
 
-	; Wait for file select window
+	; Wait for browser window to open, then maximize
 	waitSeconds(10)
+	WinActivate, YouTube
+    WinMaximize, YouTube
+	waitSeconds(1)
+	
+	; Tab to upload button, then click it
+	Loop %TAB_PRESS_COUNT% {
+		Send {Tab}
+	}
+	Send {Enter}
+	
+	; Wait for file select window to fully load
+	waitSeconds(6)
 	
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
 	Send {Enter}
 	waitSeconds(10)
-	
+    
 	; Every 60 seconds, check to see if video is still uploading
 	uploadWaitLoop:
 	Loop {
