@@ -107,7 +107,7 @@ if (USE_OBS_HOTKEYS) {
 	Gui, Add, Checkbox, vDO_UPLOAD, Begin auto-upload to YouTube after recording
 }
 else {
-	DO_UPLOAD := false
+	DO_UPLOAD := 0
 	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually. Auto-upload disabled.
 }
 Gui, Add, Text,, Navigate to the first replay in the replay menu,`nthen press OK to continue, or Cancel to quit.
