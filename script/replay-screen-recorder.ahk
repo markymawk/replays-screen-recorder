@@ -260,9 +260,15 @@ if (DO_UPLOAD) {
 	; Begin YouTube upload. Open new browser window, then wait for it to load
 	if (%BROWSER% = chrome) {
 		Run chrome.exe "https://youtube.com/upload" "--new-window"
+		waitSeconds(2)
+		WinActivate, Chrome
+		WinMaximize, Chrome
 	}
 	else if (%BROWSER% = firefox) {
 		Run firefox.exe "https://youtube.com/upload" "--new-window"
+		waitSeconds(2)
+		WinActivate, Firefox
+		WinMaximize, Firefox
 	}
 	else {
 		errorText = Browser setting invalid. Replay mp4 should still be saved.`n`nQuitting script without uploading.
