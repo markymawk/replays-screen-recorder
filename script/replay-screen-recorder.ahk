@@ -283,8 +283,14 @@ if (DO_UPLOAD) {
 	}
 	Send {Enter}
 	
-	; Wait for file select window to fully load
-	waitSeconds(6)
+	; Wait for file select window to load (up to 60 secs)
+	Loop 30 {
+		waitSeconds(2)
+		WinGetActiveTitle, WINDOW_TITLE
+		if (%WINDOW_TITLE% = Open) {
+			break
+		}
+	}
 	
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%

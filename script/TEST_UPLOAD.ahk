@@ -1,9 +1,13 @@
 ﻿INI_PATH := "config.ini"
 
-IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
-IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
-IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser
+
+; Window detection mode
+SetTitleMatchMode, 2
+
+; Set & initialize parameters
+IniRead, TAB_PRESS_COUNT, %INI_PATH%, Behavior, UploadPageTabPresses, 3
+IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser, chrome
 StringLower, BROWSER, BROWSER
 
 ; Begin YouTube upload. Open new browser window, then wait for it to load
@@ -19,30 +23,26 @@ else {
 	ExitApp
 }
 
-; Check for upload button, waiting 4 seconds each time (100 secs)
-Loop 25 {
-	; Detect upload button
-	ImageSearch, FoundX, FoundY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
-	
-	; If found, click button
-	if (ErrorLevel = 0) {
-		Goto uploadClick
-	}
-	waitSeconds(4)
-}
-
-; uploadButtonNotFound label only used if uploadClick is not accessed via the above loop.
-uploadButtonNotFound:
-errorText = Upload button not detected. Make sure the upload button is visible on-screen, and that it matches upload_button.png in the script folder.
-MsgBox %errorText%
-ExitApp
-
-; Click upload button
-uploadClick:
-Click, , %FoundX%, %FoundY%
-
-; Wait for file select window
+; Wait for browser window to open, then maximize
 waitSeconds(10)
+WinActivate, YouTube
+WinMaximize, YouTube
+waitSeconds(1)
+
+; Tab to upload button, then click it
+Loop %TAB_PRESS_COUNT% {
+	Send {Tab}
+}
+Send {Enter}
+
+; Wait for file select window to load (up to 60 secs)
+Loop 30 {
+		waitSeconds(2)
+		WinGetActiveTitle, WINDOW_TITLE
+		if (%WINDOW_TITLE% = Open) {
+			break
+		}
+	}
 
 ; Paste video path and start upload
 Send %OUTPUT_VIDEO_PATH%
