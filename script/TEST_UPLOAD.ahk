@@ -1,4 +1,7 @@
-﻿INI_PATH := "config.ini"
+﻿#SingleInstance force
+SetWorkingDir %A_ScriptDir%
+
+INI_PATH := "config.ini"
 
 IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 

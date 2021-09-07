@@ -3,15 +3,13 @@
 ; v1.0
 ; Updated 09/2021
 
-; REQUIRED images in script folder:
+; REQUIRED images in script images folder:
 ; replays_end.png
 ; replays_text.png
-; replays_empty.png
 
 ; OPTIONAL images for extra functionality:
 ; replays_character_icon_P2.png
 ; replays_character_icon_P3.png
-; upload_button.png
 ; uploading_text.png
 
 ; Recommended: disable any real Gamecube/USB controllers in Dolphin
@@ -147,12 +145,9 @@ Loop {
 	if (ErrorLevel = 0) {
 		if (SKIP_1P_REPLAYS) {
 		
-			; Check if on a 1 player replay. (ErrorLevel > 0 means image not found, port 2 is used)
+			; Check if on a 2 player replay. ("false" means image not found, port 2 is used)
 			isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
-			
-			; Check if on a 3+ player replay. (ErrorLevel > 0 means image NOT found, port 3 is used)
 			isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
-			
 			if (not isPort2Used and SKIP_1P_REPLAYS) or (isPort3Used and SKIP_3P_REPLAYS) {
 				inputButton(RIGHT_PRESS)
 				Continue
@@ -175,7 +170,7 @@ Loop {
 	}
 }
 
-; Count how many times the current replay's ending has been checked
+; Count how many times the current replay's ending has been checked. Resets each time a game starts
 scrollCheckCount = 0
 
 ; Time, in seconds, that a game can last before quitting out of the script
