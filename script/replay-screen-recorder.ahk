@@ -1,6 +1,6 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
-; v1.0
+; v1.1.1
 ; Updated 09/2021
 
 ; REQUIRED images in script images folder:
@@ -96,7 +96,7 @@ REPLAYS_CHAR_ICON_P3_COORDS := [REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, REPLAYS_CHAR_I
 ;Goto upload
 
 ; Show user interface to choose end behavior
-Gui, Add, Text,, PM/P+ replay screen recorder v1.0`n`nChoose behavior after reaching the end of replays:
+Gui, Add, Text,, PM/P+ replay screen recorder v1.1.1`n`nChoose behavior after reaching the end of replays:
 Gui, Add, Radio, Checked vRadioSleep, Set PC to sleep
 Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
@@ -267,10 +267,12 @@ if (DO_UPLOAD) {
 	}
 
 	; Wait for browser window to open, then maximize
-	waitSeconds(10)
+	ToolTip, waiting 30 seconds to open browser window
+	waitSeconds(30)
 	WinActivate, YouTube
     WinMaximize, YouTube
 	waitSeconds(1)
+	ToolTip, 
 	
 	; Tab to upload button, then click it
 	Loop %TAB_PRESS_COUNT% {
@@ -282,7 +284,7 @@ if (DO_UPLOAD) {
 	Loop 30 {
 		waitSeconds(2)
 		WinGetActiveTitle, WINDOW_TITLE
-		if (%WINDOW_TITLE% = Open) {
+		if (WINDOW_TITLE = "Open") {
 			break
 		}
 	}
