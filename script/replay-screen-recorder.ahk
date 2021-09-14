@@ -39,6 +39,7 @@ IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
 IniRead, SKIP_1P_REPLAYS, %INI_PATH%, Behavior, SkipSoloReplays, false
 IniRead, SKIP_3P_REPLAYS, %INI_PATH%, Behavior, SkipFFADoubles, false
+IniRead, MAX_REPLAY_SCROLL_COUNT, %INI_PATH%, Behavior, MaxReplayCount, -1
 
 global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 global SKIP_1P_REPLAYS := toBool(SKIP_1P_REPLAYS)
@@ -171,7 +172,10 @@ Loop {
 }
 
 ; Count how many times the current replay's ending has been checked. Resets each time a game starts
-scrollCheckCount = 0
+inGameCheckCount := 0
+
+; Count number of scrolls done (i.e. replays played)
+scrollCount := 0
 
 ; Time, in seconds, that a game can last before quitting out of the script
 SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
@@ -179,7 +183,7 @@ SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
 ; Main loop to cycle through all replays after the first
 Loop {
 	waitSeconds(1)
-	scrollCheckCount += 1
+	inGameCheckCount += 1
 
 	; If "replays" menu text is found, check if at the end of the replays list
 	if (isImageFound(REPLAYS_TEXT_COORDS, REPLAYS_TEXT_PNG)) {
@@ -189,9 +193,15 @@ Loop {
 			break
 		}
 		
+		; If at the maximum user-specified replays count, break the loop
+		if (scrollCount > 0 and (scrollCount + 1) >= MAX_REPLAY_SCROLL_COUNT) {
+			break
+		}
+		
 		; If not at the end of the list, press right to scroll to the next replay
 		inputButton(RIGHT_PRESS)
 		waitFrames(13)
+		scrollCount += 1
 		
 		; If exactly 2 players, start the replay
 		isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
@@ -200,18 +210,18 @@ Loop {
 		if ((isPort2Used or not SKIP_1P_REPLAYS) and (not isPort3Used or not SKIP_3P_REPLAYS)) {
 			inputButton(A_PRESS, 3)
 			waitSeconds(5)	; No need to do anything for a while
-			scrollCheckCount = 0
+			inGameCheckCount = 0
 		}
 	}
 	
 	; If replay text is not found, and if in-game for too long, attempt quit out button combo
-	else if (scrollCheckCount >= SCROLL_CHECK_MAX_SECS) {
+	else if (inGameCheckCount >= SCROLL_CHECK_MAX_SECS) {
 		quitOut(L_PRESS, R_PRESS, A_PRESS, START_PRESS)
 		waitSeconds(3)
 		
 		; If back on the replay menu, continue like normal
 		if (isImageFound(REPLAYS_TEXT_COORDS, REPLAYS_TEXT_PNG)) {
-			scrollCheckCount = 0
+			inGameCheckCount = 0
 			Continue
 		}
 		
