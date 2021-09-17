@@ -194,7 +194,7 @@ Loop {
 		}
 		
 		; If at the maximum user-specified replays count, break the loop
-		if (scrollCount > 0 and (scrollCount + 1) >= MAX_REPLAY_SCROLL_COUNT) {
+		if (MAX_REPLAY_SCROLL_COUNT > 0 and scrollCount > 0 and (scrollCount + 1) >= MAX_REPLAY_SCROLL_COUNT) {
 			break
 		}
 		
