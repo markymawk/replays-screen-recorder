@@ -1,6 +1,6 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
-; v1.1.1
+; v1.2
 ; Updated 09/2021
 
 ; REQUIRED images in script images folder:
