@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
-; v1.2
-; Updated 09/2021
+; v1.3
+; Updated 04/2022
 
 ; REQUIRED images in script images folder:
 ; replays_end.png
@@ -91,27 +91,32 @@ REPLAYS_CHAR_ICON_P3_COORDS := [REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, REPLAYS_CHAR_I
 ; THE PARTS THAT DO THINGS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; DEBUG
-;END_BEHAVIOR := 1
-;DO_UPLOAD := true
-;Goto upload
+; Un-comment this to skip directly to the upload function
+; END_BEHAVIOR := 1
+; DO_UPLOAD := true
+; Goto upload
+
+DO_SPLIT_RECORDING := false
 
 ; Show user interface to choose end behavior
-Gui, Add, Text,, PM/P+ replay screen recorder v1.2`n`nChoose behavior after reaching the end of replays:
+Gui, Add, Text,, PM/P+ replay screen recorder v1.3`n`nChoose behavior after reaching the end of replays:
 Gui, Add, Radio, Checked vRadioSleep, Set PC to sleep
 Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
 if (USE_OBS_HOTKEYS) {
 	Gui, Add, Text,, `nOBS hotkeys set:`n  Start: %OBS_START_RECORDING%`n  Stop: %OBS_STOP_RECORDING%`n
 	Gui, Add, Checkbox, vDO_UPLOAD, Begin auto-upload to YouTube after recording
+	Gui, Add, Checkbox, vDO_SPLIT_RECORDING, Split OBS recording at replay:
+	Gui, Add, Edit, w45
+	Gui, Add, UpDown, vREPLAYS_SPLIT_RECORDING_AMOUNT, 0
 }
 else {
 	DO_UPLOAD := 0
 	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually. Auto-upload disabled.
 }
-Gui, Add, Text,, Navigate to the first replay in the replay menu,`nthen press OK to continue, or Cancel to quit.
-Gui, Add, Button, Default w120 gContinue, OK
-Gui, Add, Button, x+5 w120 gExit, Cancel
+Gui, Add, Text, y+20, Navigate to the first replay in the replay menu,`nthen press OK to continue, or Cancel to quit.
+Gui, Add, Button, Default w120 h25 gContinue, OK
+Gui, Add, Button, x+5 w120 h25 gExit, Cancel
 Gui, Show,, Record replays
 Return
 
@@ -135,6 +140,15 @@ while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 	MsgBox File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file, then press OK to continue.
 }
 
+; Count number of scrolls done (Increments on right presses)
+scrollCount := 0
+
+; Count how many times the current replay's ending has been checked. Resets each time a game starts
+inGameCheckCount := 0
+
+; Time, in seconds, that a game can last before quitting out of the script
+SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
+
 ; Preliminary loop for initial replay
 Loop {
 
@@ -151,11 +165,13 @@ Loop {
 			isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
 			if (not isPort2Used and SKIP_1P_REPLAYS) or (isPort3Used and SKIP_3P_REPLAYS) {
 				inputButton(RIGHT_PRESS)
+				scrollCount += 1
 				Continue
 			}
 		}
 		
-		; If on a valid replay, start the replay and exit this loop
+		; Once on a valid replay, start the replay and exit this loop
+		
 		if (USE_OBS_HOTKEYS) {
 			inputKey(OBS_START_RECORDING)
 			waitSeconds(0.5)
@@ -170,15 +186,6 @@ Loop {
 		break
 	}
 }
-
-; Count how many times the current replay's ending has been checked. Resets each time a game starts
-inGameCheckCount := 0
-
-; Count number of scrolls done (i.e. replays played)
-scrollCount := 0
-
-; Time, in seconds, that a game can last before quitting out of the script
-SCROLL_CHECK_MAX_SECS := Floor(SCROLL_CHECK_MAX_MINS * 60)
 
 ; Main loop to cycle through all replays after the first
 Loop {
@@ -198,9 +205,18 @@ Loop {
 			break
 		}
 		
+		; Check if OBS recording should be split
+		if (DO_SPLIT_RECORDING and REPLAYS_SPLIT_RECORDING_AMOUNT > 0 and REPLAYS_SPLIT_RECORDING_AMOUNT <= scrollCount+1) {
+			inputKey(OBS_STOP_RECORDING)
+			waitSeconds(2)
+			inputKey(OBS_START_RECORDING)
+			waitSeconds(0.5)
+			REPLAYS_SPLIT_RECORDING_AMOUNT := -1
+		}
+		
 		; If not at the end of the list, press right to scroll to the next replay
 		inputButton(RIGHT_PRESS)
-		waitFrames(13)
+		waitFrames(15)
 		scrollCount += 1
 		
 		; If exactly 2 players, start the replay
@@ -242,11 +258,18 @@ if (USE_OBS_HOTKEYS) {
 	inputKey(OBS_STOP_RECORDING)
 }
 
+; debug
+;FileAppend, End behavior %END_BEHAVIOR%`nClosing Dolphin window`n, debug.txt
+
 ; Close Dolphin window
 if (CLOSE_DOLPHIN) {
 	Process, Close, dolphin.exe
+	Process, Close, obs64.exe
 	waitSeconds(1.5)
 }
+
+; debug
+;FileAppend, about to skip upload %END_BEHAVIOR% %DO_UPLOAD%`n, debug.txt
 
 upload:
 if (DO_UPLOAD) {
@@ -264,6 +287,12 @@ if (DO_UPLOAD) {
 		UPLOAD_WAIT_TIME_MINS := 999
 	}
 	
+	; debug
+	; FormatTime, timestamp, MMDD-HHmmss
+	; FileAppend, %timestamp%`n, debug.txt
+	; FileAppend, End behavior %END_BEHAVIOR%`n, debug.txt
+	; FileAppend, opening chrome window`n, debug.txt
+	
 	; Begin YouTube upload. Open new browser window, then wait for it to load
 	if (%BROWSER% = chrome) {
 		Run chrome.exe "https://youtube.com/upload" "--new-window"
@@ -275,20 +304,35 @@ if (DO_UPLOAD) {
 		errorText = Browser setting invalid. Replay mp4 should still be saved.`n`nQuitting script without uploading.
 		endError(END_BEHAVIOR, errorText)
 	}
-
+	
+	; debug
+	Sleep 1000
+	; WinGetActiveTitle, WINDOW_TITLE
+	; FileAppend, Currently active window: %WINDOW_TITLE%`n, debug.txt
+	
 	; Wait for browser window to open, then maximize
 	ToolTip, waiting 30 seconds to open browser window
+	; FileAppend, waiting for 30 secs, debug.txt
 	waitSeconds(30)
 	ToolTip, 
 	WinActivate, YouTube
     WinMaximize, YouTube
 	waitSeconds(1)
 	
+	; debug
+	; WinGetActiveTitle, WINDOW_TITLE
+	; FileAppend, After WinActivate and WinMaximize. currently active window: %WINDOW_TITLE%`n, debug.txt
+	
 	; Tab to upload button, then click it
 	Loop %TAB_PRESS_COUNT% {
 		Send {Tab}
 	}
 	Send {Enter}
+	
+	; debug
+	Sleep 1000
+	; WinGetActiveTitle, WINDOW_TITLE
+	; FileAppend, After tabs. currently active window: %WINDOW_TITLE%`n, debug.txt
 	
 	; Wait for file select window to load (up to 60 secs)
 	Loop 30 {
@@ -299,11 +343,20 @@ if (DO_UPLOAD) {
 		}
 	}
 	
+	; debug
+	Sleep 1000
+	; WinGetActiveTitle, WINDOW_TITLE
+	; FileAppend, After file select wait. currently active window: %WINDOW_TITLE%`n, debug.txt
+	
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
 	Send {Enter}
 	waitSeconds(10)
     
+	; debug
+	; WinGetActiveTitle, WINDOW_TITLE
+	; FileAppend, After sending video path. currently active window: %WINDOW_TITLE%`n, debug.txt
+	
 	; Every 60 seconds, check to see if video is still uploading
 	uploadWaitLoop:
 	Loop {
@@ -324,8 +377,12 @@ if (DO_UPLOAD) {
 	}
 }
 
+; debug
+; FileAppend, UPLOAD skipped so about to end %END_BEHAVIOR% %DO_UPLOAD%`n, debug.txt
+
 end:
 end(END_BEHAVIOR)
+; FileAppend, end behavior ran %END_BEHAVIOR% %DO_UPLOAD%`n, debug.txt
 ExitApp
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -359,7 +416,8 @@ quitOut(L, R, A, START) {
 ; Terminate the script based on config
 end(shutdownVar) {
 	; Put PC to sleep if 1
-	if (shutdownVar = 1)	{			
+	if (shutdownVar = 1)	{
+		waitSeconds(15)			; PC didn't go to sleep after long recording sessions, might need to wait to end Dolphin?
 		DllCall("PowrProf\SetSuspendState", "int", 0, "int", 0, "int", 0)
 	}
 	
@@ -370,10 +428,9 @@ end(shutdownVar) {
 }
 
 ; endError()
-; Call end(), then display error message
+; Call end() and display error message
 endError(shutdownVar, errorMsg) {
 	end(shutdownVar)
-
 	Gui, Destroy
 	Gui, Add, Text,, % errorMsg
 	Gui, Add, Button, gexitError, OK
