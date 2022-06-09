@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
 ; v1.3
-; Updated 04/2022
+; Updated 06/2022
 
 ; REQUIRED images in script images folder:
 ; replays_end.png
@@ -105,8 +105,8 @@ Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
 if (USE_OBS_HOTKEYS) {
 	Gui, Add, Text,, `nOBS hotkeys set:`n  Start: %OBS_START_RECORDING%`n  Stop: %OBS_STOP_RECORDING%`n
-	Gui, Add, Checkbox, vDO_UPLOAD, Begin auto-upload to YouTube after recording
-	Gui, Add, Checkbox, vDO_SPLIT_RECORDING, Split OBS recording at replay:
+	Gui, Add, Checkbox, Checked vDO_UPLOAD, Begin auto-upload to YouTube after recording
+	Gui, Add, Checkbox, vDO_SPLIT_RECORDING, Split OBS recording after replay:
 	Gui, Add, Edit, w45
 	Gui, Add, UpDown, vREPLAYS_SPLIT_RECORDING_AMOUNT, 0
 }
@@ -140,6 +140,9 @@ while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 	MsgBox File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file, then press OK to continue.
 }
 
+; Window detection mode
+SetTitleMatchMode, 2
+
 ; Count number of scrolls done (Increments on right presses)
 scrollCount := 0
 
@@ -164,6 +167,7 @@ Loop {
 			isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
 			isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
 			if (not isPort2Used and SKIP_1P_REPLAYS) or (isPort3Used and SKIP_3P_REPLAYS) {
+				WinActivate, RSBE01
 				inputButton(RIGHT_PRESS)
 				scrollCount += 1
 				Continue
@@ -180,7 +184,7 @@ Loop {
 		; Align ImageSearch box to found coordinates, for optimization
 		REPLAYS_TEXT_UPPERLEFT_X := %FoundX%
 		REPLAYS_TEXT_UPPERLEFT_Y := %FoundY%
-		
+		WinActivate, RSBE01
 		inputButton(A_PRESS, 3)
 		waitSeconds(2)
 		break
@@ -208,13 +212,14 @@ Loop {
 		; Check if OBS recording should be split
 		if (DO_SPLIT_RECORDING and REPLAYS_SPLIT_RECORDING_AMOUNT > 0 and REPLAYS_SPLIT_RECORDING_AMOUNT <= scrollCount+1) {
 			inputKey(OBS_STOP_RECORDING)
-			waitSeconds(2)
+			waitSeconds(3)
 			inputKey(OBS_START_RECORDING)
 			waitSeconds(0.5)
 			REPLAYS_SPLIT_RECORDING_AMOUNT := -1
 		}
 		
 		; If not at the end of the list, press right to scroll to the next replay
+		WinActivate, RSBE01
 		inputButton(RIGHT_PRESS)
 		waitFrames(15)
 		scrollCount += 1
@@ -224,6 +229,7 @@ Loop {
 		isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
 		
 		if ((isPort2Used or not SKIP_1P_REPLAYS) and (not isPort3Used or not SKIP_3P_REPLAYS)) {
+			WinActivate, RSBE01
 			inputButton(A_PRESS, 3)
 			waitSeconds(5)	; No need to do anything for a while
 			inGameCheckCount = 0
@@ -241,7 +247,7 @@ Loop {
 			Continue
 		}
 		
-		; If quitting out of the game didn't make the replay text appear, exit the script using endError()
+		; If quitting out of the game didn't make the replay text appear, stop the recording and exit the script using endError()
 		else {
 			if (USE_OBS_HOTKEYS) {
 				inputKey(OBS_STOP_RECORDING)
@@ -273,8 +279,7 @@ if (CLOSE_DOLPHIN) {
 
 upload:
 if (DO_UPLOAD) {
-	; Window detection mode
-	SetTitleMatchMode, 2
+
 	
 	; Set & initialize parameters
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
