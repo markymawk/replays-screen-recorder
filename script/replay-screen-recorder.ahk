@@ -114,6 +114,10 @@ else {
 	DO_UPLOAD := 0
 	Gui, Add, Text,, `nOBS hotkeys not set. Recording must be`nstarted and stopped manually. Auto-upload disabled.
 }
+
+if (MAX_REPLAY_SCROLL_COUNT > 0) {
+	Gui, Add, Text,, `nRecording %MAX_REPLAY_SCROLL_COUNT% replays in total
+}
 Gui, Add, Text, y+20, Navigate to the first replay in the replay menu,`nthen press OK to continue, or Cancel to quit.
 Gui, Add, Button, Default w120 h25 gContinue, OK
 Gui, Add, Button, x+5 w120 h25 gExit, Cancel
