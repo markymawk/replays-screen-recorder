@@ -27,6 +27,7 @@ SendMode Input
 SetWorkingDir %A_ScriptDir%
 CoordMode Pixel Screen
 CoordMode Mouse Screen
+SetTitleMatchMode, 2
 
 ;;;;;;;;;
 ; CONFIG
@@ -144,9 +145,6 @@ while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
 	MsgBox File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file, then press OK to continue.
 }
 
-; Window detection mode
-SetTitleMatchMode, 2
-
 ; Count number of scrolls done (Increments on right presses)
 scrollCount := 0
 
@@ -166,7 +164,7 @@ Loop {
 	; If in replays menu, check for valid replay
 	if (ErrorLevel = 0) {
 		if (SKIP_1P_REPLAYS) {
-		
+			
 			; Check if on a 2 player replay. ("false" means image not found, port 2 is used)
 			isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
 			isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
@@ -198,6 +196,7 @@ Loop {
 ; Main loop to cycle through all replays after the first
 Loop {
 	waitSeconds(1)
+	WinActivate, RSBE01
 	inGameCheckCount += 1
 
 	; If "replays" menu text is found, check if at the end of the replays list
@@ -283,7 +282,6 @@ if (CLOSE_DOLPHIN) {
 
 upload:
 if (DO_UPLOAD) {
-
 	
 	; Set & initialize parameters
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
