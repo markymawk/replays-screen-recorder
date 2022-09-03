@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
 ; v1.3
-; Updated 06/2022
+; Updated 09/2022
 
 ; REQUIRED images in script images folder:
 ; replays_end.png
