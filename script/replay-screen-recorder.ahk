@@ -141,10 +141,26 @@ Continue:
 	}
 
 ; Check if output file exists, and show an error if so
-while DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
-	MsgBox File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file, then press OK to continue.
+if DO_UPLOAD and FileExist(OUTPUT_VIDEO_PATH) {
+	MsgBox, 1,, File already exists at:`n%OUTPUT_VIDEO_PATH%`n`nRename the file automatically?
 }
 
+; If output file exists, rename it
+IfMsgBox, OK
+{
+	SplitPath, OUTPUT_VIDEO_PATH,, vidDir, vidExt, vidName
+	FormatTime, TIMESTAMP,, M-dd-yy_HHmmss
+	RENAMED_VIDEO_PATH = %vidDir%\%vidName%_%TIMESTAMP%.%vidExt%
+	FileMove, %OUTPUT_VIDEO_PATH%, %RENAMED_VIDEO_PATH%
+	MsgBox,,, File renamed to:`n%vidName%_%TIMESTAMP%.%vidExt%
+}
+
+IfMsgBox, Cancel
+{
+	while FileExist(OUTPUT_VIDEO_PATH) {	
+		MsgBox,,, Rename the file at:`n%OUTPUT_VIDEO_PATH%`n`nthen press OK to continue.
+	}
+}
 ; Count number of scrolls done (Increments on right presses)
 scrollCount := 0
 
