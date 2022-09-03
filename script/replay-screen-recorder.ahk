@@ -41,10 +41,12 @@ IniRead, SCROLL_CHECK_MAX_MINS, %INI_PATH%, Behavior, MaxGameLengthMinutes, 9
 IniRead, SKIP_1P_REPLAYS, %INI_PATH%, Behavior, SkipSoloReplays, false
 IniRead, SKIP_3P_REPLAYS, %INI_PATH%, Behavior, SkipFFADoubles, false
 IniRead, MAX_REPLAY_SCROLL_COUNT, %INI_PATH%, Behavior, MaxReplayCount, -1
+IniRead, KEEP_DOLPHIN_FOCUSED, %INI_PATH%, Behavior, KeepDolphinFocused, false
 
 global CLOSE_DOLPHIN := toBool(CLOSE_DOLPHIN)
 global SKIP_1P_REPLAYS := toBool(SKIP_1P_REPLAYS)
 global SKIP_3P_REPLAYS := toBool(SKIP_3P_REPLAYS)
+global KEEP_DOLPHIN_FOCUSED := toBool(KEEP_DOLPHIN_FOCUSED)
 
 ; Hotkeys
 IniRead, OBS_START_RECORDING, %INI_PATH%, Hotkeys, OBSStartRecording, 0
@@ -215,7 +217,9 @@ Loop {
 ; Main loop to cycle through all replays after the first
 Loop {
 	waitSeconds(1)
-	WinActivate, RSBE01
+	if (KEEP_DOLPHIN_FOCUSED) {
+		WinActivate, RSBE01		
+	}
 	inGameCheckCount += 1
 
 	; If "replays" menu text is found, check if at the end of the replays list
