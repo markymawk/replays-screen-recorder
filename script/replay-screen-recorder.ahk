@@ -162,10 +162,12 @@ Loop {
 	ImageSearch, FoundX, FoundY, %REPLAYS_TEXT_UPPERLEFT_X%, %REPLAYS_TEXT_UPPERLEFT_Y%, %REPLAYS_TEXT_LOWERRIGHT_X%, %REPLAYS_TEXT_LOWERRIGHT_Y%, %REPLAYS_TEXT_PNG%
 	
 	; If in replays menu, check for valid replay
+	
 	if (ErrorLevel = 0) {
 		if (SKIP_1P_REPLAYS) {
 			
 			; Check if on a 2 player replay. ("false" means image not found, port 2 is used)
+			
 			isPort2Used := (isImageFound(REPLAYS_CHAR_ICON_P2_COORDS, REPLAYS_CHAR_ICON_P2_PNG))
 			isPort3Used := (isImageFound(REPLAYS_CHAR_ICON_P3_COORDS, REPLAYS_CHAR_ICON_P3_PNG))
 			if (not isPort2Used and SKIP_1P_REPLAYS) or (isPort3Used and SKIP_3P_REPLAYS) {
@@ -184,6 +186,7 @@ Loop {
 		}
 		
 		; Align ImageSearch box to found coordinates, for optimization
+		
 		REPLAYS_TEXT_UPPERLEFT_X := %FoundX%
 		REPLAYS_TEXT_UPPERLEFT_Y := %FoundY%
 		WinActivate, RSBE01
@@ -200,9 +203,11 @@ Loop {
 	inGameCheckCount += 1
 
 	; If "replays" menu text is found, check if at the end of the replays list
+	
 	if (isImageFound(REPLAYS_TEXT_COORDS, REPLAYS_TEXT_PNG)) {
 	
 		; If at the end of the replays list, break the loop
+		
 		if (isImageFound(REPLAYS_END_COORDS, REPLAYS_END_PNG)) {
 			break
 		}
@@ -335,9 +340,9 @@ if (DO_UPLOAD) {
 		Send {Tab}
 	}
 	Send {Enter}
+	waitSeconds(1)
 	
 	; debug
-	Sleep 1000
 	; WinGetActiveTitle, WINDOW_TITLE
 	; FileAppend, After tabs. currently active window: %WINDOW_TITLE%`n, debug.txt
 	
