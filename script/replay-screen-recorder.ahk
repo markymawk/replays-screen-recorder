@@ -215,7 +215,7 @@ Loop {
 		; Check if OBS recording should be split
 		if (DO_SPLIT_RECORDING and REPLAYS_SPLIT_RECORDING_AMOUNT > 0 and REPLAYS_SPLIT_RECORDING_AMOUNT <= scrollCount+1) {
 			inputKey(OBS_STOP_RECORDING)
-			waitSeconds(3)
+			waitSeconds(8)
 			inputKey(OBS_START_RECORDING)
 			waitSeconds(0.5)
 			REPLAYS_SPLIT_RECORDING_AMOUNT := -1
