@@ -455,9 +455,9 @@ endError(shutdownVar, errorMsg) {
 inputButton(inputVar, loopCount:=1) {
 	Loop, %loopCount% {
 		Send {%inputVar% down}
-		Sleep 40
+		Sleep 65
 		Send {%inputVar% up}
-		Sleep 25
+		Sleep 33
 	}
 }
 
