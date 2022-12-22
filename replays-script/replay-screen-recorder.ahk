@@ -324,12 +324,12 @@ if (DO_UPLOAD) {
 	; FileAppend, %timestamp%`n, debug.txt
 	; FileAppend, End behavior %END_BEHAVIOR%`n, debug.txt
 	; FileAppend, opening chrome window`n, debug.txt
-	
+
 	; Begin YouTube upload. Open new browser window, then wait for it to load
-	if (%BROWSER% = chrome) {
+	if (BROWSER = "chrome") {
 		Run chrome.exe "https://youtube.com/upload" "--new-window"
 	}
-	else if (%BROWSER% = firefox) {
+	else if (BROWSER = "firefox") {
 		Run firefox.exe "https://youtube.com/upload" "--new-window"
 	}
 	else {
