@@ -102,7 +102,7 @@ REPLAYS_CHAR_ICON_P3_COORDS := [REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, REPLAYS_CHAR_I
 DO_SPLIT_RECORDING := false
 
 ; Show user interface to choose end behavior
-Gui, Add, Text,, PM/P+ replay screen recorder v1.3`n`nChoose behavior after reaching the end of replays:
+Gui, Add, Text,, PM/P+ replay screen recorder v1.3.1`n`nChoose behavior after reaching the end of replays:
 Gui, Add, Radio, Checked vRadioSleep, Set PC to sleep
 Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
