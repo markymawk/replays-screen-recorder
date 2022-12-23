@@ -1,6 +1,6 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
-; v1.3.1
+; v1.3.2
 ; Updated 12/2022
 
 ; REQUIRED images in script images folder:
@@ -95,14 +95,14 @@ REPLAYS_CHAR_ICON_P3_COORDS := [REPLAYS_CHAR_ICON_P3_UPPERLEFT_X, REPLAYS_CHAR_I
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Un-comment this to skip directly to the upload function
-; END_BEHAVIOR := 1
+; END_BEHAVIOR := 0
 ; DO_UPLOAD := true
 ; Goto upload
 
 DO_SPLIT_RECORDING := false
 
 ; Show user interface to choose end behavior
-Gui, Add, Text,, PM/P+ replay screen recorder v1.3.1`n`nChoose behavior after reaching the end of replays:
+Gui, Add, Text,, PM/P+ replay screen recorder v1.3.2`n`nChoose behavior after reaching the end of replays:
 Gui, Add, Radio, Checked vRadioSleep, Set PC to sleep
 Gui, Add, Radio, vRadioShutDown, Shut down PC
 Gui, Add, Radio, vNothing, Do nothing
@@ -342,11 +342,16 @@ if (DO_UPLOAD) {
 	; WinGetActiveTitle, WINDOW_TITLE
 	; FileAppend, Currently active window: %WINDOW_TITLE%`n, debug.txt
 	
-	; Wait for browser window to open, then maximize
-	ToolTip, waiting 30 seconds to open browser window
-	; FileAppend, waiting for 30 secs, debug.txt
-	waitSeconds(30)
-	ToolTip, 
+	; Wait for browser window to load (up to 60 secs)
+	Loop 30 {
+		waitSeconds(2)
+		WinGetActiveTitle, WINDOW_TITLE
+		if (InStr(WINDOW_TITLE, YouTube)) {
+			break
+		}
+	}
+	waitSeconds(2)
+
 	WinActivate, YouTube
     WinMaximize, YouTube
 	waitSeconds(1)
@@ -370,7 +375,7 @@ if (DO_UPLOAD) {
 	Loop 30 {
 		waitSeconds(2)
 		WinGetActiveTitle, WINDOW_TITLE
-		if (WINDOW_TITLE = "Open") {
+		if (WINDOW_TITLE = "Open" or WINDOW_TITLE = "File Upload") {
 			break
 		}
 	}
@@ -382,6 +387,7 @@ if (DO_UPLOAD) {
 	
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
+	waitSeconds(1)
 	Send {Enter}
 	waitSeconds(10)
     
