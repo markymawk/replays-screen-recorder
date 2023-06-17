@@ -292,18 +292,12 @@ if (USE_OBS_HOTKEYS) {
 	inputKey(OBS_STOP_RECORDING)
 }
 
-; debug
-;FileAppend, End behavior %END_BEHAVIOR%`nClosing Dolphin window`n, debug.txt
-
 ; Close Dolphin window
 if (CLOSE_DOLPHIN) {
 	Process, Close, dolphin.exe
 	Process, Close, obs64.exe
 	waitSeconds(1.5)
 }
-
-; debug
-;FileAppend, about to skip upload %END_BEHAVIOR% %DO_UPLOAD%`n, debug.txt
 
 upload:
 if (DO_UPLOAD) {
@@ -320,12 +314,6 @@ if (DO_UPLOAD) {
 		UPLOAD_WAIT_TIME_MINS := 999
 	}
 	
-	; debug
-	; FormatTime, timestamp, MMDD-HHmmss
-	; FileAppend, %timestamp%`n, debug.txt
-	; FileAppend, End behavior %END_BEHAVIOR%`n, debug.txt
-	; FileAppend, opening chrome window`n, debug.txt
-
 	; Begin YouTube upload. Open new browser window, then wait for it to load
 	if (BROWSER = "chrome") {
 		Run chrome.exe "https://youtube.com/upload" "--new-window"
@@ -338,10 +326,7 @@ if (DO_UPLOAD) {
 		endError(END_BEHAVIOR, errorText)
 	}
 	
-	; debug
 	Sleep 1000
-	; WinGetActiveTitle, WINDOW_TITLE
-	; FileAppend, Currently active window: %WINDOW_TITLE%`n, debug.txt
 	
 	; Wait for browser window to load (up to 60 secs)
 	Loop 30 {
@@ -357,16 +342,9 @@ if (DO_UPLOAD) {
     WinMaximize, YouTube
 	waitSeconds(1)
 	
-	; debug
-	; WinGetActiveTitle, WINDOW_TITLE
-	; FileAppend, After WinActivate and WinMaximize. currently active window: %WINDOW_TITLE%`n, debug.txt
 	ImageSearch, buttonX, buttonY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
 	
 	MouseClick,, buttonX, buttonY
-	
-	; debug
-	; WinGetActiveTitle, WINDOW_TITLE
-	; FileAppend, After tabs. currently active window: %WINDOW_TITLE%`n, debug.txt
 	
 	; Wait for file select window to load (up to 60 secs)
 	Loop 30 {
@@ -377,20 +355,13 @@ if (DO_UPLOAD) {
 		}
 	}
 	
-	; debug
 	Sleep 1000
-	; WinGetActiveTitle, WINDOW_TITLE
-	; FileAppend, After file select wait. currently active window: %WINDOW_TITLE%`n, debug.txt
 	
 	; Paste video path and start upload
 	Send %OUTPUT_VIDEO_PATH%
 	waitSeconds(1)
 	Send {Enter}
 	waitSeconds(10)
-    
-	; debug
-	; WinGetActiveTitle, WINDOW_TITLE
-	; FileAppend, After sending video path. currently active window: %WINDOW_TITLE%`n, debug.txt
 	
 	; Every 60 seconds, check to see if video is still uploading
 	uploadWaitLoop:
@@ -412,12 +383,8 @@ if (DO_UPLOAD) {
 	}
 }
 
-; debug
-; FileAppend, UPLOAD skipped so about to end %END_BEHAVIOR% %DO_UPLOAD%`n, debug.txt
-
 end:
 end(END_BEHAVIOR)
-; FileAppend, end behavior ran %END_BEHAVIOR% %DO_UPLOAD%`n, debug.txt
 ExitApp
 
 ;;;;;;;;;;;;;;;;;;;;;;;
