@@ -1,7 +1,7 @@
 ﻿; Replay menu scroll script
 ; by mawwwk
-; v1.3.2
-; Updated 12/2022
+; v1.4
+; Updated 06/2023
 
 ; REQUIRED images in script images folder:
 ; replays_end.png
@@ -10,9 +10,9 @@
 ; OPTIONAL images for extra functionality:
 ; replays_character_icon_P2.png
 ; replays_character_icon_P3.png
+; upload_button.png
 ; uploading_text.png
 
-; Recommended: disable any real Gamecube/USB controllers in Dolphin
 ; Special thanks to:
 ; Fracture for rebuilding PM/P+ replays, as well as the Autosave Replays feature, both of which make this possible
 ; Bird for designing the Netplay replay save system, which inspired me to explore this tech to its fullest through 2021
@@ -310,6 +310,7 @@ if (DO_UPLOAD) {
 	
 	; Set & initialize parameters
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
+	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 	IniRead, UPLOAD_WAIT_TIME_MINS, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
 	IniRead, TAB_PRESS_COUNT, %INI_PATH%, Behavior, UploadPageTabPresses, 3
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser, chrome
@@ -359,13 +360,9 @@ if (DO_UPLOAD) {
 	; debug
 	; WinGetActiveTitle, WINDOW_TITLE
 	; FileAppend, After WinActivate and WinMaximize. currently active window: %WINDOW_TITLE%`n, debug.txt
+	ImageSearch, buttonX, buttonY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
 	
-	; Tab to upload button, then click it
-	Loop %TAB_PRESS_COUNT% {
-		Send {Tab}
-	}
-	Send {Enter}
-	waitSeconds(1)
+	MouseClick,, buttonX, buttonY
 	
 	; debug
 	; WinGetActiveTitle, WINDOW_TITLE
