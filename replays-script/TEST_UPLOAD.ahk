@@ -14,10 +14,10 @@ IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser, chrome
 StringLower, BROWSER, BROWSER
 
 ; Begin YouTube upload. Open new browser window, then wait for it to load
-if (%BROWSER% = chrome) {
+if (BROWSER = "chrome") {
 	Run chrome.exe "https://youtube.com/upload" "--new-window"
 }
-else if (%BROWSER% = firefox) {
+else if (BROWSER = "firefox") {
 	Run firefox.exe "https://youtube.com/upload" "--new-window"
 }
 else {
@@ -26,11 +26,19 @@ else {
 	ExitApp
 }
 
-; Wait for browser window to open, then maximize
-waitSeconds(10)
-WinActivate, YouTube
-WinMaximize, YouTube
-waitSeconds(1)
+; Wait for browser window to load (up to 60 secs)
+	Loop 30 {
+		waitSeconds(2)
+		WinGetActiveTitle, WINDOW_TITLE
+		if (InStr(WINDOW_TITLE, YouTube)) {
+			break
+		}
+	}
+	waitSeconds(2)
+
+	WinActivate, YouTube
+    WinMaximize, YouTube
+	waitSeconds(1)
 
 ; Tab to upload button, then click it
 Loop %TAB_PRESS_COUNT% {
@@ -39,17 +47,19 @@ Loop %TAB_PRESS_COUNT% {
 Send {Enter}
 
 ; Wait for file select window to load (up to 60 secs)
-Loop 30 {
+	Loop 30 {
 		waitSeconds(2)
 		WinGetActiveTitle, WINDOW_TITLE
-		if (%WINDOW_TITLE% = Open) {
+		if (WINDOW_TITLE = "Open" or WINDOW_TITLE = "File Upload") {
 			break
 		}
 	}
 
 ; Paste video path and start upload
 Send %OUTPUT_VIDEO_PATH%
+waitSeconds(1)
 Send {Enter}
+waitSeconds(10)
 
 ExitApp
 
