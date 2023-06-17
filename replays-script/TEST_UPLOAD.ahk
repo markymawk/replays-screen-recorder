@@ -9,7 +9,7 @@ IniRead, OUTPUT_VIDEO_PATH, %INI_PATH%, Behavior, OBSOutputVideoPath
 SetTitleMatchMode, 2
 
 ; Set & initialize parameters
-IniRead, TAB_PRESS_COUNT, %INI_PATH%, Behavior, UploadPageTabPresses, 3
+IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser, chrome
 StringLower, BROWSER, BROWSER
 
@@ -40,11 +40,9 @@ else {
     WinMaximize, YouTube
 	waitSeconds(1)
 
-; Tab to upload button, then click it
-Loop %TAB_PRESS_COUNT% {
-	Send {Tab}
-}
-Send {Enter}
+	ImageSearch, buttonX, buttonY, 0,0, A_ScreenWidth, A_ScreenHeight, %UPLOAD_BUTTON_PNG%
+	
+	MouseClick,, buttonX, buttonY
 
 ; Wait for file select window to load (up to 60 secs)
 	Loop 30 {
