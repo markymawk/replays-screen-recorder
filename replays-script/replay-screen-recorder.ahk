@@ -306,7 +306,6 @@ if (DO_UPLOAD) {
 	IniRead, UPLOADING_TEXT_PNG, %INI_PATH%, Images, UploadingText
 	IniRead, UPLOAD_BUTTON_PNG, %INI_PATH%, Images, UploadButton
 	IniRead, UPLOAD_WAIT_TIME_MINS, %INI_PATH%, Behavior, UploadWaitTimeMinutes, -1
-	IniRead, TAB_PRESS_COUNT, %INI_PATH%, Behavior, UploadPageTabPresses, 3
 	IniRead, BROWSER, %INI_PATH%, Behavior, UploadBrowser, chrome
 	StringLower, BROWSER, BROWSER
 	

@@ -34,8 +34,8 @@ else {
 			break
 		}
 	}
+	
 	waitSeconds(2)
-
 	WinActivate, YouTube
     WinMaximize, YouTube
 	waitSeconds(1)
