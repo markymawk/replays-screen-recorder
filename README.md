@@ -4,7 +4,7 @@ by mawwwk
 AutoHotkey script for PM/P+ to automatically record replays in Dolphin, control OBS recording, and upload the output mp4 to Youtube.
 
 ## Requirements
-* AutoHotkey (built and tested on v1.1.33.09)
+* AutoHotkey (built and tested on v1.1.36.02)
 * Project+ Dolphin build
 * OBS
 
